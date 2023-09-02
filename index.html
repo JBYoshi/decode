@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Decode</title>
+        <script src="https://unpkg.com/cbor-web@9.0.1/dist/cbor.js" integrity="sha384-q9s3vb3P0ecP8rM5hcPEpHI6IcBJY4aowZkiysYawbjl/4MLv8zFPiOxkLZYP31A" crossorigin="anonymous"></script>
+        <script src="./scripts/main.mjs" type="module"></script>
+    </head>
+    <body>
+        <p>
+            Input:
+        </p>
+        <textarea autofocus id="input"></textarea>
+        <p>
+            Output:
+        </p>
+        <div id="output"></div>
+    </body>
+    <style>
+        .entry>.entry {
+            padding-left: 1em;
+        }
+        textarea {
+            width: 100%;
+            resize: vertical;
+        }
+    </style>
+</html>
