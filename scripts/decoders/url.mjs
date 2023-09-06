@@ -39,7 +39,7 @@ export default function decodeURLLike(input) {
             if (url.port) {
                 parts.push({
                     title: "Port",
-                    value: url.port
+                    value: parseInt(url.port)
                 });
             }
             if (url.pathname) {
