@@ -1,9 +1,30 @@
+function representTree(title, value) {
+    if (Array.isArray(value)) {
+        return {
+            title,
+            value: "Array (" + value.length + " elements)",
+            children: value.map(element => representTree(undefined, element))
+        };
+    }
+    if (typeof value == "object") {
+        return {
+            title,
+            value: "Object (" + Object.keys(value).length + " entries)",
+            children: Object.keys(value).map(key => representTree(key, value[key]))
+        };
+    }
+    return {
+        title,
+        value
+    };
+}
+
 export default function decodeJSON(s) {
     if (typeof s != "string") return null;
 
     if ((s.startsWith('"') && s.endsWith('"')) || (s.startsWith("{") && s.endsWith("}")) || (s.startsWith("[") && s.endsWith("]"))) {
         try {
-            return {title: "JSON", value: JSON.parse(s)};
+            return representTree("JSON", JSON.parse(s));
         } catch (e) {
             return null;
         }

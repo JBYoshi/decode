@@ -5,8 +5,6 @@ import decodeURLLike from "./decoders/url.mjs";
 import decodeUTF8 from "./decoders/utf8.mjs";
 import decodeUUID from "./decoders/uuid.mjs";
 import decodeJOSELike from "./decoders/jose-like.mjs";
-import decodeArray from "./decoders/js-array.mjs";
-import decodeJSObject from "./decoders/js-object.mjs";
 import decodeNull from "./decoders/null.mjs";
 import decodeCBOR from "./decoders/cbor.mjs";
 
@@ -15,8 +13,6 @@ const decoders = [
     decodeUUID,
     decodeStringToBytes,
     decodeJSON,
-    decodeArray,
-    decodeJSObject,
     decodeNull,
     decodeUTF8,
     decodeUnixTimestamp,
