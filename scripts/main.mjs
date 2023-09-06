@@ -8,33 +8,68 @@ class DecoderTreeElement extends HTMLDivElement {
         this.attachShadow({mode: "open"});
 
         this.header = document.createElement("div");
+        this.header.style.display = "flex";
+        this.header.style.height = "1.3em";
         this.shadowRoot.appendChild(this.header);
+
+        this.expandContractButtonSlot = document.createElement("div");
+        this.expandContractButtonSlot.style.width = "1.5em";
+        this.expandContractButtonSlot.style.flexShrink = "0";
+        this.header.appendChild(this.expandContractButtonSlot);
 
         this.expandContractButton = document.createElement("button");
         this.expandContractButton.onclick = e => this.onExpandContractClicked(e);
-        this.header.appendChild(this.expandContractButton);
+        this.expandContractButtonSlot.appendChild(this.expandContractButton);
 
-        this.label = document.createElement("span");
+        this.label = document.createElement("div");
+        this.label.style.overflow = "hidden";
+        this.label.style.whiteSpace = "nowrap";
+        this.label.style.textOverflow = "ellipsis";
+        this.label.style.flexGrow = "1";
+        this.label.style.flexShrink = "1";
         this.header.appendChild(this.label);
 
-        this.style.marginLeft = "1em";
+        this.toolbar = document.createElement("div");
+        this.header.appendChild(this.toolbar);
+        this.viewButton = document.createElement("button");
+        this.viewButton.innerText = "View";
+        this.viewButton.onclick = e => this.valueExpanded = !this.valueExpanded;
+        this.toolbar.appendChild(this.viewButton);
 
-        this._expanded = false;
-        this.expanded = false;
+        this.style.marginLeft = "1.5em";
+
+        this._childrenExpanded = false;
+        this.childrenExpanded = false;
+
+        this.valueExpanded = false;
     }
 
     onExpandContractClicked(e) {
         e.preventDefault();
 
-        this.expanded = !this.expanded;
+        this.childrenExpanded = !this.childrenExpanded;
     }
 
-    get expanded() {
-        return this._expanded;
+    get valueExpanded() {
+        return this.label.style.whiteSpace == "normal";
     }
 
-    set expanded(expanded) {
-        this._expanded = expanded;
+    set valueExpanded(expanded) {
+        if (expanded) {
+            this.header.style.height = "auto";
+            this.label.style.whiteSpace = "normal";
+        } else {
+            this.header.style.height = "1.3em";
+            this.label.style.whiteSpace = "nowrap";
+        }
+    }
+
+    get childrenExpanded() {
+        return this._childrenExpanded;
+    }
+
+    set childrenExpanded(expanded) {
+        this._childrenExpanded = expanded;
         if (expanded) {
             this.expandContractButton.innerText = "-";
             this.classList.add("expanded");
@@ -44,7 +79,7 @@ class DecoderTreeElement extends HTMLDivElement {
                 child.populateChildren();
             }
             if (this.childTreeNodes.length == 1) {
-                this.childTreeNodes[0].expanded = true;
+                this.childTreeNodes[0].childrenExpanded = true;
             }
         } else {
             this.expandContractButton.innerText = "+";
@@ -93,7 +128,7 @@ addEventListener("load", function() {
         let tree = new DecoderTreeElement();
         tree.data = {value: input.value};
         tree.populateChildren();
-        tree.expanded = true;
+        tree.childrenExpanded = true;
         output.appendChild(tree);
     }
     input.onchange = input.onkeydown = input.onkeyup = input.onpaste = function() {
