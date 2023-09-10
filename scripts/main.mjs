@@ -1,88 +1,87 @@
 import decode from "./decoders.mjs";
 import toString from "./to-string.mjs";
 
-class DecoderTreeElement extends HTMLDivElement {
-    constructor() {
-        super();
+function makeTreeNode(data) {
+    let node = document.createElement("div");
 
-        this.attachShadow({mode: "open"});
+    let header = document.createElement("div");
+    node.appendChild(header);
 
-        this.header = document.createElement("div");
-        this.shadowRoot.appendChild(this.header);
+    let expandContractButton = document.createElement("button");
+    expandContractButton.onclick = e => onExpandContractClicked(e);
+    header.appendChild(expandContractButton);
 
-        this.expandContractButton = document.createElement("button");
-        this.expandContractButton.onclick = e => this.onExpandContractClicked(e);
-        this.header.appendChild(this.expandContractButton);
+    let label = document.createElement("span");
+    header.appendChild(label);
 
-        this.label = document.createElement("span");
-        this.header.appendChild(this.label);
+    node.style.marginLeft = "1em";
 
-        this.style.marginLeft = "1em";
+    let expanded = false;
 
-        this._expanded = false;
-        this.expanded = false;
-    }
-
-    onExpandContractClicked(e) {
+    function onExpandContractClicked(e) {
         e.preventDefault();
 
-        this.expanded = !this.expanded;
+        setExpanded(!expanded);
     }
 
-    get expanded() {
-        return this._expanded;
-    }
+    let childTreeNodes = null;
 
-    set expanded(expanded) {
-        this._expanded = expanded;
+    function setExpanded(newExpanded) {
+        expanded = newExpanded;
         if (expanded) {
-            this.expandContractButton.innerText = "-";
-            this.classList.add("expanded");
+            expandContractButton.innerText = "-";
+            node.classList.add("expanded");
             
-            for (let child of this.childTreeNodes) {
-                child.hidden = false;
-                child.populateChildren();
+            for (let child of childTreeNodes) {
+                child.setHidden(false);
             }
-            if (this.childTreeNodes.length == 1) {
-                this.childTreeNodes[0].expanded = true;
+            if (childTreeNodes.length == 1) {
+                childTreeNodes[0].expanded = true;
             }
         } else {
-            this.expandContractButton.innerText = "+";
-            this.classList.remove("expanded");
-            if (this.childTreeNodes) {
-                for (let child of this.childTreeNodes) {
-                    child.hidden = true;
+            expandContractButton.innerText = "+";
+            node.classList.remove("expanded");
+            if (childTreeNodes) {
+                for (let child of childTreeNodes) {
+                    child.setHidden(true);
                 }
             }
         }
     }
 
-    set data(data) {
-        this.label.innerText = [data.title, data.value].filter(x => !!x).map(toString).join(": ");
-        this.value = data.value;
-        this.childData = data.children;
-    }
+    label.innerText = [data.title, data.value].filter(x => !!x).map(toString).join(": ");
+    let childData = data.children;
 
-    populateChildren() {
-        if (this.childTreeNodes) return;
+    function populateChildren() {
+        if (childTreeNodes) return;
 
-        if (!this.childData) this.childData = decode(this.value);
-        this.childTreeNodes = this.childData.map(item => {
-            let node = new DecoderTreeElement();
-            node.data = item;
-            node.hidden = true;
-            return node;
+        if (!childData) childData = decode(data.value);
+        childTreeNodes = childData.map(item => {
+            let childNode = makeTreeNode(item);
+            childNode.setHidden(true);
+            return childNode;
         });
 
-        for (let child of this.childTreeNodes) {
-            this.shadowRoot.appendChild(child);
+        for (let child of childTreeNodes) {
+            node.appendChild(child.node);
         }
 
-        this.expandContractButton.hidden = this.childTreeNodes.length == 0;
+        expandContractButton.hidden = childTreeNodes.length == 0;
     }
-}
 
-customElements.define("decoder-tree-element", DecoderTreeElement, {extends: "div"});
+    setExpanded(false);
+
+    return {
+        node,
+        setHidden: function(value) {
+            if (!value) {
+                populateChildren();
+            }
+            node.hidden = value;
+        },
+        setExpanded
+    };
+}
 
 addEventListener("load", function() {
     let input = document.getElementById("input");
@@ -90,11 +89,10 @@ addEventListener("load", function() {
 
     function onInputChanged() {
         output.innerText = null;
-        let tree = new DecoderTreeElement();
-        tree.data = {value: input.value};
-        tree.populateChildren();
-        tree.expanded = true;
-        output.appendChild(tree);
+        let tree = makeTreeNode({value: input.value});
+        tree.setHidden(false);
+        tree.setExpanded(true);
+        output.appendChild(tree.node);
     }
     input.onchange = input.onkeydown = input.onkeyup = input.onpaste = function() {
         onInputChanged();
