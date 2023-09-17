@@ -1,4 +1,4 @@
-// cbor is set up as a global library.
+import { decodeAllSync } from "cbor-web";
 
 function representTree(title, value) {
     if (Array.isArray(value)) {
@@ -33,13 +33,14 @@ export default function decodeCBOR(input) {
         return null;
     }
     try {
-        let entries = cbor.decodeAllSync(input);
+        let entries = decodeAllSync(input);
         if (entries.length == 1) {
             return representTree("CBOR", entries[0]);
         } else {
             return representTree("CBOR", entries);
         }
     } catch (e) {
+        console.warn(e);
         return null;
     }
 }
