@@ -96,7 +96,11 @@ export default function decodeUUID(input) {
                 children.push({
                     title: "Timestamp",
                     value: (version == "2" ? timestamp / 0x100000000n : timestamp),
-                    children: decode(new Date(Number(timestamp / 10000n) + uuidEpoch))
+                    children: [
+                        {
+                            value: new Date(Number(timestamp / 10000n) + uuidEpoch)
+                        }
+                    ]
                 });
             }
             if (version == "4") {
@@ -115,7 +119,11 @@ export default function decodeUUID(input) {
                 children.push({
                     title: "Timestamp",
                     value: timestamp,
-                    children: decode(new Date(timestamp))
+                    children: [
+                        {
+                            value: new Date(timestamp)
+                        }
+                    ]
                 });
             }
             if (version == "8") {
