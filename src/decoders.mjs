@@ -21,5 +21,6 @@ const decoders = [
 ];
 
 export default function decode(input) {
+    if (typeof input == "string") input = input.trim();
     return decoders.map(decoder => decoder(input)).filter(x => x != null);
 }
