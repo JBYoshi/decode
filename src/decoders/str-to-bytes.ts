@@ -1,13 +1,15 @@
-export function decodeBase64(input) {
+import { DecodeNode, DecodeValue } from "../types";
+
+export function decodeBase64(input: string): Uint8Array {
     let decoded = atob(input);
-    let array = [];
+    let array: number[] = [];
     for (let i = 0; i < decoded.length; i++) {
         array.push(decoded.charCodeAt(i));
     }
     return new Uint8Array(array);
 }
 
-export function decodeBase64URL(input) {
+export function decodeBase64URL(input: string): Uint8Array {
     let inStandardBase64 = input.replace(/_/g, "/").replace(/-/g, "+");
     while (inStandardBase64.length % 4 != 0) {
         inStandardBase64 += "=";
@@ -15,7 +17,7 @@ export function decodeBase64URL(input) {
     return decodeBase64(inStandardBase64);
 }
 
-export default function decodeStringToBytes(input) {
+export default function decodeStringToBytes(input: DecodeValue): DecodeNode | null {
     if (typeof input != "string") return null;
 
     input = input.replaceAll(/[\s\n]/g, "");

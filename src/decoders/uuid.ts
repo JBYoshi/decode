@@ -1,4 +1,6 @@
-export default function decodeUUID(input) {
+import { DecodeNode, DecodeValue } from "../types";
+
+export default function decodeUUID(input: DecodeValue): DecodeNode | null {
     if (typeof input != "string") return null;
 
     if (input.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i) || input.match(/^[0-9a-f]{32}$/)) {
@@ -20,7 +22,7 @@ export default function decodeUUID(input) {
 
         let title = "UUID";
         let versionData = null;
-        const children = [
+        const children: DecodeNode[] = [
             {
                 title: "Variant",
                 value: UUID_VARIANTS[variant],
@@ -54,7 +56,7 @@ export default function decodeUUID(input) {
                     value: input.substring(20)
                 });
                 
-                let timestamp;
+                let timestamp: bigint;
                 if (version == "6") {
                     timestamp = BigInt(parseInt(input.substring(0, 12) + input.substring(13, 16), 16));
                 } else {
@@ -67,10 +69,10 @@ export default function decodeUUID(input) {
                 let clock = parseInt(input.substring(16, 20), 16) & 0x3FFF;
 
                 if (version == "2") {
-                    let domain = clock & 0xFF;
-                    if (domain == 0) {
+                    let domain = (clock & 0xFF) + "";
+                    if (domain == "0") {
                         domain += " (POSIX user)";
-                    } else if (domain == 1) {
+                    } else if (domain == "1") {
                         domain += " (POSIX group)";
                     }
                     children.push({

@@ -1,6 +1,7 @@
 import { decodeAllSync } from "cbor-web";
+import { DecodeNode, DecodeValue } from "../types";
 
-function representTree(title, value) {
+function representTree(title: string | undefined, value: any): DecodeNode {
     if (Array.isArray(value)) {
         return {
             title,
@@ -28,7 +29,7 @@ function representTree(title, value) {
     };
 }
 
-export default function decodeCBOR(input) {
+export default function decodeCBOR(input: DecodeValue): DecodeNode | null {
     if (!(input instanceof Uint8Array)) {
         return null;
     }

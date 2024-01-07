@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { render } from "react-dom";
-import decode from "./decoders.mjs";
-import toString from "./to-string.mjs";
+import decode from "./decoders.js";
+import toString from "./to-string.js";
 
 function TreeNode({data}) {
     let [children, setChildren] = useState(data.children || null);
@@ -26,12 +26,12 @@ function TreeNode({data}) {
 }
 
 addEventListener("load", function() {
-    let input = document.getElementById("input");
+    let input = document.getElementById("input") as HTMLTextAreaElement;
     let output = document.getElementById("output");
 
     function onInputChanged() {
         let decoded = decode(input.value).map(part => <TreeNode data={part} />);
-        if (decoded.length == 0) decoded.push("Couldn't decode anything");
+        if (decoded.length == 0) decoded.push(<>Couldn't decode anything</>);
         render(decoded, output);
     }
     input.onchange = input.onkeydown = input.onkeyup = input.onpaste = function() {

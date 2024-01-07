@@ -1,4 +1,6 @@
-function representTree(title, value) {
+import { DecodeNode, DecodeValue } from "../types";
+
+function representTree(title: string | undefined, value: any): DecodeNode {
     if (Array.isArray(value)) {
         return {
             title,
@@ -19,7 +21,7 @@ function representTree(title, value) {
     };
 }
 
-export default function decodeJSON(s) {
+export default function decodeJSON(s: DecodeValue): DecodeNode | null {
     if (typeof s != "string") return null;
 
     if ((s.startsWith('"') && s.endsWith('"')) || (s.startsWith("{") && s.endsWith("}")) || (s.startsWith("[") && s.endsWith("]"))) {

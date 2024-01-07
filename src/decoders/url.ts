@@ -1,4 +1,6 @@
-export default function decodeURLLike(input) {
+import { DecodeNode, DecodeValue } from "../types";
+
+export default function decodeURLLike(input: DecodeValue): DecodeNode {
     if (typeof input !== "string") return null;
 
     // For this, I am specifying "only characters that are not allowed in any of the URL control sets."

@@ -1,7 +1,9 @@
+import { DecodeNode, DecodeValue } from "../types";
+
 // This time in seconds is the year 2969. I doubt it'll be a problem.
 const SECONDS_MILLISECONDS_CUTOFF = new Date("Jan 1, 1971, 00:00:00 UTC").getTime();
 
-export function decodeUnixTimestamp(input) {
+export function decodeUnixTimestamp(input: DecodeValue): DecodeNode | null {
     if (typeof input == "string" && input.match(/^[0-9]+$/)) {
         input = parseInt(input);
     }
