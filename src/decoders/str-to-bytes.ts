@@ -27,7 +27,7 @@ export default function decodeStringToBytes(input: DecodeValue): DecodeNode | nu
             result.push(parseInt(input.slice(i, i + 8), 2));
         }
         return {
-            title: "Binary",
+            description: "Binary",
             value: new Uint8Array(result)
         };
     }
@@ -37,14 +37,14 @@ export default function decodeStringToBytes(input: DecodeValue): DecodeNode | nu
             result.push(parseInt(input.slice(i, i + 2), 16));
         }
         return {
-            title: "Hex",
+            description: "Hex",
             value: new Uint8Array(result)
         };
     }
     if (input.match(/^[0-9a-zA-Z+/]+={0,2}$/) && input.length % 4 == 0) {
         try {
             return {
-                title: "Base 64",
+                description: "Base 64",
                 value: decodeBase64(input)
             };
         } catch (e) {
@@ -54,7 +54,7 @@ export default function decodeStringToBytes(input: DecodeValue): DecodeNode | nu
     if (input.match(/^[0-9a-zA-Z_-]+$/) && input.length % 4 != 1) {
         try {
             return {
-                title: "URL-safe base 64",
+                description: "URL-safe base 64",
                 value: decodeBase64URL(input)
             };
         } catch (e) {

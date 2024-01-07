@@ -71,7 +71,7 @@ export default function decodeURLLike(input: DecodeValue): DecodeNode {
             }
 
             return {
-                title: "URL",
+                description: "URL",
                 value: input,
                 children: parts
             };
@@ -79,7 +79,7 @@ export default function decodeURLLike(input: DecodeValue): DecodeNode {
 
         if (input.includes("%")) {
             return {
-                title: "URL Component",
+                description: "URL Component",
                 value: decodeURIComponent(input)
             };
         }

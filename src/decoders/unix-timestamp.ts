@@ -12,13 +12,13 @@ export function decodeUnixTimestamp(input: DecodeValue): DecodeNode | null {
         // For compactness, let's pick whatever's closer to now.
         if (input >= SECONDS_MILLISECONDS_CUTOFF && input < SECONDS_MILLISECONDS_CUTOFF * 1000) {
             return {
-                title: "UNIX timestamp (milliseconds)",
+                description: "UNIX timestamp (milliseconds)",
                 value: new Date(input)
             };
         }
         if (input >= SECONDS_MILLISECONDS_CUTOFF / 1000 && input < SECONDS_MILLISECONDS_CUTOFF) {
             return {
-                title: "UNIX timestamp (seconds)",
+                description: "UNIX timestamp (seconds)",
                 value: new Date(input * 1000)
             };
         }

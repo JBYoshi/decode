@@ -24,19 +24,19 @@ export default function decodeJOSELike(input: DecodeValue): DecodeNode | null {
         if (typeof header == "object" && header?.typ == "JWT" && partsStr.length == 3) {
             try {
                 return {
-                    title: "JWT",
+                    description: "JWT",
                     value: input,
                     children: [
                         {
-                            title: "Header",
+                            key: "Header",
                             value: utf8decoder.decode(parts[0])
                         },
                         {
-                            title: "Payload",
+                            key: "Payload",
                             value: utf8decoder.decode(parts[1])
                         },
                         {
-                            title: "Signature",
+                            key: "Signature",
                             value: parts[2]
                         }
                     ]
@@ -45,7 +45,7 @@ export default function decodeJOSELike(input: DecodeValue): DecodeNode | null {
         }
 
         return {
-            title: "JOSE-like token",
+            description: "JOSE-like token",
             value: input,
             children: parts.map(part => ({value: part}))
         };

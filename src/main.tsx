@@ -2,8 +2,9 @@ import { useEffect, useState } from "react";
 import { render } from "react-dom";
 import decode from "./decoders.js";
 import toString from "./to-string.js";
+import { DecodeNode } from "./types.js";
 
-function TreeNode({data}) {
+function TreeNode({data}: {data: DecodeNode}) {
     let [children, setChildren] = useState(data.children || null);
     let [expanded, setExpanded] = useState(false);
     
@@ -11,7 +12,21 @@ function TreeNode({data}) {
         setChildren(data.children || decode(data.value));
     }, [data]);
 
-    let title = [data.title, data.value].filter(x => !!x).map(toString).join(": ");
+    let title: string;
+    if (data.key) {
+        title = data.key + ": ";
+    } else {
+        title = "";
+    }
+    if (data.description) {
+        title += data.description;
+        if (data.value !== undefined) {
+            title += " - ";
+        }
+    }
+    if (data.value) {
+        title += toString(data.value);
+    }
 
     return <div style={{marginLeft: "1em"}} className={expanded ? "expanded" : ""}>
         <div>

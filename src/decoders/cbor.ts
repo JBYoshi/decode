@@ -1,30 +1,31 @@
 import { decodeAllSync } from "cbor-web";
 import { DecodeNode, DecodeValue } from "../types";
 
-function representTree(title: string | undefined, value: any): DecodeNode {
+function representTree(key: string | number | undefined, value: any): DecodeNode {
     if (Array.isArray(value)) {
         return {
-            title,
-            value: "Array (" + value.length + " elements)",
-            children: value.map(element => representTree(undefined, element))
+            key,
+            description: "CBOR array (" + value.length + " elements)",
+            value: null, // TODO
+            children: value.map((element, index) => representTree(index, element))
         };
     }
     if (value instanceof Map) {
         return {
-            title,
-            value: "Map (" + [...value.keys()].length + " entries)",
+            description: "CBOR map (" + [...value.keys()].length + " entries)",
+            value: null, // TODO
             children: [...value.keys()].map(key => representTree(key, value.get(key)))
         };
     }
     if (Object.getPrototypeOf(value) == Object.prototype) {
         return {
-            title,
-            value: "Map (" + Object.keys(value).length + " entries)",
+            description: "CBOR map (" + Object.keys(value).length + " entries)",
+            value: null, // TODO
             children: Object.keys(value).map(key => representTree(key, value[key]))
         };
     }
     return {
-        title,
+        description: "CBOR " + (typeof value == "object" && value ? value.constructor.name : typeof value),
         value
     };
 }
@@ -36,9 +37,9 @@ export default function decodeCBOR(input: DecodeValue): DecodeNode | null {
     try {
         let entries = decodeAllSync(input);
         if (entries.length == 1) {
-            return representTree("CBOR", entries[0]);
+            return representTree(undefined, entries[0]);
         } else {
-            return representTree("CBOR", entries);
+            return representTree(undefined, entries);
         }
     } catch (e) {
         console.warn(e);

@@ -24,12 +24,12 @@ export default function decodeUUID(input: DecodeValue): DecodeNode | null {
         let versionData = null;
         const children: DecodeNode[] = [
             {
-                title: "Variant",
+                description: "Variant",
                 value: UUID_VARIANTS[variant],
                 children: []
             },
             {
-                title: "Version",
+                description: "Version",
                 value: "PLACEHOLDER"
             }
         ];
@@ -52,7 +52,7 @@ export default function decodeUUID(input: DecodeValue): DecodeNode | null {
                 }
 
                 children.push({
-                    title: "Node ID",
+                    description: "Node ID",
                     value: input.substring(20)
                 });
                 
@@ -76,27 +76,27 @@ export default function decodeUUID(input: DecodeValue): DecodeNode | null {
                         domain += " (POSIX group)";
                     }
                     children.push({
-                        title: "Local domain",
+                        description: "Local domain",
                         value: domain
                     });
                     clock >>= 8; // TODO: not sure what the convention is
 
                     let uid = Number(timestamp & 0xFFFFFFFFn);
                     children.push({
-                        title: "Local ID",
+                        description: "Local ID",
                         value: uid
                     });
                     timestamp &= 0xFFFFFFFF00000000n;
                 }
 
                 children.push({
-                    title: "Clock sequence",
+                    description: "Clock sequence",
                     value: clock
                 });
 
                 let uuidEpoch = new Date("October 15, 1582, 00:00:00 UTC").getTime();
                 children.push({
-                    title: "Timestamp",
+                    description: "Timestamp",
                     value: (version == "2" ? timestamp / 0x100000000n : timestamp),
                     children: [
                         {
@@ -119,7 +119,7 @@ export default function decodeUUID(input: DecodeValue): DecodeNode | null {
                 versionData = "Time-based, UNIX";
                 let timestamp = parseInt(input.substring(0, 12), 16);
                 children.push({
-                    title: "Timestamp",
+                    description: "Timestamp",
                     value: timestamp,
                     children: [
                         {
@@ -146,7 +146,7 @@ export default function decodeUUID(input: DecodeValue): DecodeNode | null {
         let reformatted = input.slice(0, 8) + "-" + input.slice(8, 12) + "-" + input.slice(12, 16) + "-" + input.slice(16, 20) + "-" + input.slice(20, 32);
 
         return {
-            title,
+            description: title,
             value: reformatted,
             children
         };
