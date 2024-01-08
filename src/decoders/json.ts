@@ -11,6 +11,9 @@ function representTree(value: any): DecodeNode {
         return new ListNode("Array", [{format: "JSON", value: JSON.stringify(value)}],
             value.map((element) => representTree(element)));
     }
+    if (value === null) {
+        return ConstantNode.NULL;
+    }
     if (typeof value == "object") {
         return new ListNode("Object", [{format: "JSON", value: JSON.stringify(value)}],
             Object.keys(value).map(key => new KeyValueNode(new StringNode(key), representTree(value[key]))));
@@ -24,9 +27,6 @@ function representTree(value: any): DecodeNode {
     if (typeof value == "boolean") {
         return ConstantNode.fromBoolean(value);
     }
-    if (value === null) {
-        return ConstantNode.NULL;
-    }
     // TODO: fallback case?
 }
 
@@ -36,11 +36,13 @@ export default function decodeJSON(node: DecodeNode): DecodeNode | null {
     let s = node.value;
 
     if ((s.startsWith('"') && s.endsWith('"')) || (s.startsWith("{") && s.endsWith("}")) || (s.startsWith("[") && s.endsWith("]"))) {
+        let json;
         try {
-            return new FormatNode("JSON", representTree(JSON.parse(s)));
+            json = JSON.parse(s);
         } catch (e) {
             return null;
         }
+        return new FormatNode("JSON", representTree(json));
     }
     return null;
 }
