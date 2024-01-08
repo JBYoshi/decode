@@ -4,7 +4,7 @@ import { ListNode } from "../nodes/list";
 import { NumberNode } from "../nodes/number";
 import { ObjectNode, Property } from "../nodes/object";
 import { StringNode } from "../nodes/string";
-import { DecodeNode, DecodeNode, DecodeNode } from "../types";
+import { DecodeNode } from "../types";
 
 export default function decodeURLLike(input: DecodeNode): DecodeNode | null {
     if (!(input instanceof StringNode)) return null;
