@@ -1,4 +1,7 @@
-import { DecodeNode, DecodeValue } from "../types";
+import { BytesNode } from "../nodes/bytes";
+import { FormatNode } from "../nodes/format";
+import { StringNode } from "../nodes/string";
+import { DecodeNode } from "../types";
 
 export function decodeBase64(input: string): Uint8Array {
     let decoded = atob(input);
@@ -17,46 +20,35 @@ export function decodeBase64URL(input: string): Uint8Array {
     return decodeBase64(inStandardBase64);
 }
 
-export default function decodeStringToBytes(input: DecodeValue): DecodeNode | null {
-    if (typeof input != "string") return null;
+export default function decodeStringToBytes(input: DecodeNode): DecodeNode | null {
+    if (!(input instanceof StringNode)) return null;
+    
+    let text = input.value.replaceAll(/[\s\n]/g, "");
 
-    input = input.replaceAll(/[\s\n]/g, "");
-    if (input.match(/^[01]+$/) && input.length % 8 == 0) {
+    if (text.match(/^[01]+$/) && text.length % 8 == 0) {
         let result = [];
-        for (let i = 0; i < input.length; i += 8) {
-            result.push(parseInt(input.slice(i, i + 8), 2));
+        for (let i = 0; i < text.length; i += 8) {
+            result.push(parseInt(text.slice(i, i + 8), 2));
         }
-        return {
-            description: "Binary",
-            value: new Uint8Array(result)
-        };
+        return new FormatNode("Binary", new BytesNode(new Uint8Array(result)));
     }
-    if (input.match(/^[0-9a-fA-F\s]+$/) && input.length % 2 == 0) {
+    if (text.match(/^[0-9a-fA-F\s]+$/) && text.length % 2 == 0) {
         let result = [];
-        for (let i = 0; i < input.length; i += 2) {
-            result.push(parseInt(input.slice(i, i + 2), 16));
+        for (let i = 0; i < text.length; i += 2) {
+            result.push(parseInt(text.slice(i, i + 2), 16));
         }
-        return {
-            description: "Hex",
-            value: new Uint8Array(result)
-        };
+        return new FormatNode("Hex", new BytesNode(new Uint8Array(result)));
     }
-    if (input.match(/^[0-9a-zA-Z+/]+={0,2}$/) && input.length % 4 == 0) {
+    if (text.match(/^[0-9a-zA-Z+/]+={0,2}$/) && text.length % 4 == 0) {
         try {
-            return {
-                description: "Base 64",
-                value: decodeBase64(input)
-            };
+            return new FormatNode("Base 64", new BytesNode(decodeBase64(text)));
         } catch (e) {
             console.warn(e);
         }
     }
-    if (input.match(/^[0-9a-zA-Z_-]+$/) && input.length % 4 != 1) {
+    if (text.match(/^[0-9a-zA-Z_-]+$/) && text.length % 4 != 1) {
         try {
-            return {
-                description: "URL-safe base 64",
-                value: decodeBase64URL(input)
-            };
+            return new FormatNode("URL-safe base 64", new BytesNode(decodeBase64URL(text)));
         } catch (e) {
             console.warn(e);
         }

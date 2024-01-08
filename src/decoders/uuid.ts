@@ -1,7 +1,14 @@
-import { DecodeNode, DecodeValue } from "../types";
+import { ConstantNode } from "../nodes/constant";
+import { DateNode } from "../nodes/date";
+import { NumberNode } from "../nodes/number";
+import { ObjectNode, Property } from "../nodes/object";
+import { StringNode } from "../nodes/string";
+import { DecodeNode } from "../types";
 
-export default function decodeUUID(input: DecodeValue): DecodeNode | null {
-    if (typeof input != "string") return null;
+export default function decodeUUID(node: DecodeNode): DecodeNode | null {
+    if (!(node instanceof StringNode)) return null;
+
+    let input = node.value;
 
     if (input.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i) || input.match(/^[0-9a-f]{32}$/)) {
         let hasUuidDashes = input.includes("-");
@@ -22,15 +29,14 @@ export default function decodeUUID(input: DecodeValue): DecodeNode | null {
 
         let title = "UUID";
         let versionData = null;
-        const children: DecodeNode[] = [
+        const children: Property[] = [
             {
                 description: "Variant",
-                value: UUID_VARIANTS[variant],
-                children: []
+                value: new ConstantNode(variant, UUID_VARIANTS[variant])
             },
             {
                 description: "Version",
-                value: "PLACEHOLDER"
+                value: new ConstantNode(version)
             }
         ];
 
@@ -53,7 +59,7 @@ export default function decodeUUID(input: DecodeValue): DecodeNode | null {
 
                 children.push({
                     description: "Node ID",
-                    value: input.substring(20)
+                    value: new StringNode(input.substring(20))
                 });
                 
                 let timestamp: bigint;
@@ -69,40 +75,42 @@ export default function decodeUUID(input: DecodeValue): DecodeNode | null {
                 let clock = parseInt(input.substring(16, 20), 16) & 0x3FFF;
 
                 if (version == "2") {
-                    let domain = (clock & 0xFF) + "";
-                    if (domain == "0") {
-                        domain += " (POSIX user)";
-                    } else if (domain == "1") {
-                        domain += " (POSIX group)";
+                    let domain = (clock & 0xFF);
+                    let domainNode: DecodeNode;
+                    if (domain == 0) {
+                        domainNode = new ConstantNode(domain, "POSIX user");
+                    } else if (domain == 1) {
+                        domainNode = new ConstantNode(domain, "POSIX group");
                     }
                     children.push({
                         description: "Local domain",
-                        value: domain
+                        value: domainNode
                     });
                     clock >>= 8; // TODO: not sure what the convention is
 
                     let uid = Number(timestamp & 0xFFFFFFFFn);
                     children.push({
                         description: "Local ID",
-                        value: uid
+                        value: new NumberNode(uid)
                     });
                     timestamp &= 0xFFFFFFFF00000000n;
                 }
 
                 children.push({
                     description: "Clock sequence",
-                    value: clock
+                    value: new NumberNode(clock)
                 });
 
                 let uuidEpoch = new Date("October 15, 1582, 00:00:00 UTC").getTime();
                 children.push({
                     description: "Timestamp",
-                    value: (version == "2" ? timestamp / 0x100000000n : timestamp),
-                    children: [
+                    value: new DateNode(
+                        new Date(Number(timestamp / 10000n) + uuidEpoch),
                         {
-                            value: new Date(Number(timestamp / 10000n) + uuidEpoch)
+                            format: "UUID timestamp",
+                            value: (version == "2" ? timestamp / 0x100000000n : timestamp).toString()
                         }
-                    ]
+                    )
                 });
             }
             if (version == "4") {
@@ -120,12 +128,7 @@ export default function decodeUUID(input: DecodeValue): DecodeNode | null {
                 let timestamp = parseInt(input.substring(0, 12), 16);
                 children.push({
                     description: "Timestamp",
-                    value: timestamp,
-                    children: [
-                        {
-                            value: new Date(timestamp)
-                        }
-                    ]
+                    value: new DateNode(new Date(timestamp))
                 });
             }
             if (version == "8") {
@@ -134,21 +137,17 @@ export default function decodeUUID(input: DecodeValue): DecodeNode | null {
         }
 
         if (versionData) {
-            children[1].value = version + " (" + versionData + ")";
+            children[1].value = new ConstantNode(version, versionData);
         } else {
             if (!hasUuidDashes) {
                 // Probably not a UUID after all
                 return null;
             }
-            children[1].value = version + " (Unknown)";
+            children[1].value = new ConstantNode(version);
         }
 
         let reformatted = input.slice(0, 8) + "-" + input.slice(8, 12) + "-" + input.slice(12, 16) + "-" + input.slice(16, 20) + "-" + input.slice(20, 32);
 
-        return {
-            description: title,
-            value: reformatted,
-            children
-        };
+        return new ObjectNode("UUID", reformatted, children);
     }
 }

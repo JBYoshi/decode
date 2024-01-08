@@ -1,87 +1,87 @@
-import { DecodeNode, DecodeValue } from "../types";
+import { FormatNode } from "../nodes/format";
+import { KeyValueNode } from "../nodes/keyvalue";
+import { ListNode } from "../nodes/list";
+import { NumberNode } from "../nodes/number";
+import { ObjectNode, Property } from "../nodes/object";
+import { StringNode } from "../nodes/string";
+import { DecodeNode, DecodeNode, DecodeNode } from "../types";
 
-export default function decodeURLLike(input: DecodeValue): DecodeNode {
-    if (typeof input !== "string") return null;
+export default function decodeURLLike(input: DecodeNode): DecodeNode | null {
+    if (!(input instanceof StringNode)) return null;
 
     // For this, I am specifying "only characters that are not allowed in any of the URL control sets."
     // In the URL spec (https://url.spec.whatwg.org), this reduces to excluding characters in the fragment percent-encode set
     // and the query percent-encode set. Everything else is derived from these with other characters blocked.
-    if (input.match(/^([!$#$&-;=?-~]|%[0-9a-fA-F]{2})+$/)) {
-        let url = null;
+    if (input.value.match(/^([!$#$&-;=?-~]|%[0-9a-fA-F]{2})+$/)) {
+        let url: URL | null = null;
         try {
-            url = new URL(input);
+            url = new URL(input.value);
         } catch (e) {}
         if (url != null) {
-            let parts = [];
+            let parts: Property[] = [];
             
             if (url.protocol) {
                 parts.push({
-                    title: "Protocol",
-                    value: url.protocol
+                    description: "Protocol",
+                    value: new StringNode(url.protocol)
                 });
             }
             if (url.username) {
                 parts.push({
-                    title: "Username",
-                    value: url.username
+                    description: "Username",
+                    value: new StringNode(url.username)
                 });
             }
             if (url.password) {
                 parts.push({
-                    title: "Password",
-                    value: url.username
+                    description: "Password",
+                    value: new StringNode(url.username)
                 });
             }
             if (url.hostname) {
                 parts.push({
-                    title: "Hostname",
-                    value: url.hostname
+                    description: "Hostname",
+                    value: new StringNode(url.hostname)
                 });
             }
             if (url.port) {
                 parts.push({
-                    title: "Port",
-                    value: parseInt(url.port)
+                    description: "Port",
+                    value: new NumberNode(parseInt(url.port))
                 });
             }
             if (url.pathname) {
                 parts.push({
-                    title: "Path",
-                    value: url.pathname,
-                    children: url.pathname.split("/").filter(element => element.length > 0).map(element => ({value: element}))
+                    description: "Path",
+                    value: new ListNode("Path string", [
+                        {format: "Path string", value: url.pathname}
+                    ], url.pathname.replace(/^\//, "").split("/").map(element => new StringNode(decodeURIComponent(element))))
                 });
             }
             if (url.search) {
                 parts.push({
-                    title: "Query",
-                    value: url.search,
-                    children: [...url.searchParams.entries()].map(([key, value]) => {
-                        return {
-                            title: key,
-                            value: value
-                        };
-                    })
+                    description: "Query",
+                    value: new ListNode(
+                        "Query string",
+                        [
+                            {format: "Query string", value: url.search}
+                        ],
+                        [...url.searchParams.entries()]
+                            .map(([key, value]) => new KeyValueNode(new StringNode(key), new StringNode(value))))
                 });
             }
             if (url.hash) {
                 parts.push({
-                    title: "Hash",
-                    value: url.hash
+                    description: "Hash",
+                    value: new StringNode(url.hash)
                 });
             }
 
-            return {
-                description: "URL",
-                value: input,
-                children: parts
-            };
+            return new ObjectNode("URL", input.value, parts);
         }
 
-        if (input.includes("%")) {
-            return {
-                description: "URL Component",
-                value: decodeURIComponent(input)
-            };
+        if (input.value.includes("%")) {
+            return new FormatNode("URL Component", new StringNode(decodeURIComponent(input.value)));
         }
     }
     return null;

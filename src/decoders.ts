@@ -6,7 +6,7 @@ import decodeUTF8 from "./decoders/utf8.js";
 import decodeUUID from "./decoders/uuid.js";
 import decodeJOSELike from "./decoders/jose-like.js";
 import decodeCBOR from "./decoders/cbor.js";
-import { DecodeNode, DecodeValue, Decoder } from "./types";
+import { Decoder, DecodeNode } from "./types.js";
 
 const decoders: Decoder[] = [
     decodeURLLike,
@@ -19,7 +19,6 @@ const decoders: Decoder[] = [
     decodeCBOR
 ];
 
-export default function decode(input: DecodeValue): DecodeNode[] {
-    if (typeof input == "string") input = input.trim();
+export default function decode(input: DecodeNode): DecodeNode[] {
     return decoders.map(decoder => decoder(input)).filter(x => x != null) as DecodeNode[];
 }

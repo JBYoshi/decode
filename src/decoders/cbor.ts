@@ -1,45 +1,50 @@
 import { decodeAllSync } from "cbor-web";
-import { DecodeNode, DecodeValue } from "../types";
+import { DecodeNode } from "../types";
+import { ListNode } from "../nodes/list";
+import { KeyValueNode } from "../nodes/keyvalue";
+import { StringNode } from "../nodes/string";
+import { BytesNode } from "../nodes/bytes";
+import { DateNode } from "../nodes/date";
+import { NumberNode } from "../nodes/number";
+import { ConstantNode } from "../nodes/constant";
+import { FormatNode } from "../nodes/format";
 
-function representTree(key: string | number | undefined, value: any): DecodeNode {
+function representTree(value: any): DecodeNode {
     if (Array.isArray(value)) {
-        return {
-            key,
-            description: "CBOR array (" + value.length + " elements)",
-            value: null, // TODO
-            children: value.map((element, index) => representTree(index, element))
-        };
+        return new ListNode("Array", [ /* TODO */ ], value.map(element => representTree(element)));
     }
     if (value instanceof Map) {
-        return {
-            description: "CBOR map (" + [...value.keys()].length + " entries)",
-            value: null, // TODO
-            children: [...value.keys()].map(key => representTree(key, value.get(key)))
-        };
+        return new ListNode("Map", [ /* TODO */ ], [...value.entries()].map(([key, value]) => new KeyValueNode(representTree(key), representTree(value))));
     }
     if (Object.getPrototypeOf(value) == Object.prototype) {
-        return {
-            description: "CBOR map (" + Object.keys(value).length + " entries)",
-            value: null, // TODO
-            children: Object.keys(value).map(key => representTree(key, value[key]))
-        };
+        return new ListNode("Map", [ /* TODO */ ], [...Object.keys(value)].map(key => new KeyValueNode(representTree(key), representTree(value[key]))));
     }
-    return {
-        description: "CBOR " + (typeof value == "object" && value ? value.constructor.name : typeof value),
-        value
-    };
+    if (typeof value == "string") {
+        return new StringNode(value);
+    }
+    if (value instanceof Uint8Array) {
+        return new BytesNode(value);
+    }
+    if (value instanceof Date) {
+        return new DateNode(value);
+    }
+    if (typeof value == "number" || typeof value == "bigint") {
+        return new NumberNode(value);
+    }
+    // TODO
+    return new ConstantNode("" + value, typeof value);
 }
 
-export default function decodeCBOR(input: DecodeValue): DecodeNode | null {
-    if (!(input instanceof Uint8Array)) {
+export default function decodeCBOR(input: DecodeNode): DecodeNode | null {
+    if (!(input instanceof BytesNode)) {
         return null;
     }
     try {
-        let entries = decodeAllSync(input);
+        let entries = decodeAllSync(input.value);
         if (entries.length == 1) {
-            return representTree(undefined, entries[0]);
+            return new FormatNode("CBOR", representTree(entries[0]));
         } else {
-            return representTree(undefined, entries);
+            return new FormatNode("CBOR", new ListNode("Stream", [ /* TODO */ ], entries.map(entry => representTree(entry))));
         }
     } catch (e) {
         console.warn(e);
