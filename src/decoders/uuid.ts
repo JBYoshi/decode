@@ -32,11 +32,11 @@ export default function decodeUUID(node: DecodeNode): DecodeNode | null {
         const children: Property[] = [
             {
                 description: "Variant",
-                value: new ConstantNode(variant, UUID_VARIANTS[variant])
+                value: new ConstantNode("Variant", variant, UUID_VARIANTS[variant])
             },
             {
                 description: "Version",
-                value: new ConstantNode(version)
+                value: new ConstantNode("Version", version)
             }
         ];
 
@@ -78,9 +78,11 @@ export default function decodeUUID(node: DecodeNode): DecodeNode | null {
                     let domain = (clock & 0xFF);
                     let domainNode: DecodeNode;
                     if (domain == 0) {
-                        domainNode = new ConstantNode(domain, "POSIX user");
+                        domainNode = new ConstantNode("Local domain", domain, "POSIX user");
                     } else if (domain == 1) {
-                        domainNode = new ConstantNode(domain, "POSIX group");
+                        domainNode = new ConstantNode("Local domain", domain, "POSIX group");
+                    } else {
+                        domainNode = new ConstantNode("Local domain", domain);
                     }
                     children.push({
                         description: "Local domain",
@@ -137,7 +139,7 @@ export default function decodeUUID(node: DecodeNode): DecodeNode | null {
         }
 
         if (versionData) {
-            children[1].value = new ConstantNode(version, versionData);
+            children[1].value = new ConstantNode(versionData, version);
         } else {
             if (!hasUuidDashes) {
                 // Probably not a UUID after all

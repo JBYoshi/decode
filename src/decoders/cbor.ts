@@ -38,7 +38,7 @@ class ByteReader {
     }
 }
 
-const BREAK_NODE = new ConstantNode(0xFF, "CBOR Break");
+const BREAK_NODE = new ConstantNode("CBOR Break", 0xFF);
 
 interface CBORNode {
     debugDescription: string;
@@ -246,22 +246,22 @@ function decodeNode(reader: ByteReader, waitingForBreak: BreakStatus = "NO_BREAK
             // Break is checked for above
             throw new TypeError("Break not allowed here");
         } else if (originalArg == 20n) {
-            node = new ConstantNode(arg, "false");
+            node = new ConstantNode("Boolean", arg, "False");
             debugDescription = "false";
         } else if (originalArg == 21n) {
-            node = new ConstantNode(arg, "true");
+            node = new ConstantNode("Boolean", arg, "True");
             debugDescription = "true";
         } else if (originalArg == 22n) {
-            node = new ConstantNode(arg, "null");
+            node = new ConstantNode("Null", arg);
             debugDescription = "null";
         } else if (originalArg == 23n) {
-            node = new ConstantNode(arg, "undefined");
+            node = new ConstantNode("Undefined", arg);
             debugDescription = "undefined";
         } else if (originalArg < 25) {
             if (originalArg == 24n && arg < 32) {
                 throw new TypeError("Simple type cannot use extended sequence starting with 24 unless the argument is at least 32");
             }
-            node = new ConstantNode("simple(" + arg + ")");
+            node = new ConstantNode("Simple", arg);
             debugDescription = "simple(" + arg + ")";
         } else {
             throw new TypeError("Unsupported simple type " + originalArg);

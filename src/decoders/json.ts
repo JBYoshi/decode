@@ -21,7 +21,13 @@ function representTree(value: any): DecodeNode {
     if (typeof value == "number") {
         return new NumberNode(value);
     }
-    return new ConstantNode(value + "");
+    if (typeof value == "boolean") {
+        return ConstantNode.fromBoolean(value);
+    }
+    if (value === null) {
+        return ConstantNode.NULL;
+    }
+    // TODO: fallback case?
 }
 
 export default function decodeJSON(node: DecodeNode): DecodeNode | null {
