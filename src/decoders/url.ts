@@ -1,3 +1,4 @@
+import { ConstantNode } from "../nodes/constant";
 import { FormatNode } from "../nodes/format";
 import { KeyValueNode } from "../nodes/keyvalue";
 import { ListNode } from "../nodes/list";
@@ -12,7 +13,7 @@ export default function decodeURLLike(input: DecodeNode): DecodeNode | null {
     // For this, I am specifying "only characters that are not allowed in any of the URL control sets."
     // In the URL spec (https://url.spec.whatwg.org), this reduces to excluding characters in the fragment percent-encode set
     // and the query percent-encode set. Everything else is derived from these with other characters blocked.
-    if (input.value.match(/^([!$#$&-;=?-~]|%[0-9a-fA-F]{2})+$/)) {
+    if (input.value.match(/^([!$#$&-;=?-~]|%[0-9a-fA-F]{2})+$/) && input.value.includes("://")) {
         let url: URL | null = null;
         try {
             url = new URL(input.value);
@@ -23,7 +24,7 @@ export default function decodeURLLike(input: DecodeNode): DecodeNode | null {
             if (url.protocol) {
                 parts.push({
                     description: "Protocol",
-                    value: new StringNode(url.protocol)
+                    value: new ConstantNode("Protocol", url.protocol)
                 });
             }
             if (url.username) {
