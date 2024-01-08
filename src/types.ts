@@ -1,8 +1,8 @@
 export type Decoder = (input: DecodeNode) => DecodeNode | null;
 
 export interface DecodeNode {
-    description?: string;
-    
+    description: string;
+
     representations: Representation[];
 }
 

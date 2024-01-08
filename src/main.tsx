@@ -1,6 +1,6 @@
-import { StrictMode, useEffect, useState } from "react";
+import { StrictMode, useEffect, useRef, useState } from "react";
 import decode from "./decoders.js";
-import { DecodeNode } from "./types.js";
+import { DecodeNode, Representation } from "./types.js";
 import { FormatNode } from "./nodes/format.js";
 import { KeyValueNode } from "./nodes/keyvalue.js";
 import { KeyNode } from "./nodes/key.js";
@@ -9,7 +9,7 @@ import { StringNode } from "./nodes/string.js";
 import { createRoot } from "react-dom/client";
 import { ObjectNode } from "./nodes/object.js";
 
-function getInitialChildren(data: DecodeNode): DecodeNode[] | null {
+function getInitialChildren(data: DecodeNode): (DecodeNode | KeyNode)[] | null {
     if (data instanceof FormatNode) return [data.value];
     if (data instanceof KeyValueNode) return [new KeyNode("Key", data.key), new KeyNode("Value", data.value)];
     if (data instanceof ListNode) return data.elements;
@@ -17,34 +17,83 @@ function getInitialChildren(data: DecodeNode): DecodeNode[] | null {
     return null;
 }
 
-function TreeNode({data}: {data: DecodeNode}) {
-    let prefix = "";
-    if (data instanceof KeyNode) {
-        prefix += data.key + ": ";
-        data = data.value;
-    }
-    if (data instanceof FormatNode) {
-        prefix += data.format + " ";
-        data = data.value;
+function Representer({representations}: {representations: Representation[]}) {
+    let [selectedIndex, setSelectedIndex] = useState(0);
+    let [showAll, setShowAll] = useState(false);
+    let viewRef = useRef<HTMLSelectElement>();
+
+    if (representations.length == 0) return <></>;
+
+    return <>
+        <code
+                ref={viewRef}
+                tabIndex={0}
+                style={{flexGrow: 1, flexShrink: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: showAll ? "initial" : "nowrap"}}
+                onFocus={() => setShowAll(true)}
+                onBlur={() => setShowAll(false)}>
+            {representations[selectedIndex]?.value}
+        </code>
+        <select value={selectedIndex} onChange={e => {
+            setSelectedIndex(parseInt(e.target.value));
+            viewRef.current.focus();
+        }}>
+            {representations.map((repr, index) => <option value={index}>{repr.format}</option>)}
+        </select>
+    </>;
+}
+
+function generateUI(node: DecodeNode | KeyNode): {
+    header: JSX.Element,
+    initialChildren: (DecodeNode | KeyNode)[] | null,
+    value: DecodeNode
+} {
+    let key = null;
+    if (node instanceof KeyNode) {
+        key = node.key;
+        node = node.value;
+    } else if (node instanceof FormatNode) {
+        key = node.format;
+        node = node.value;
+    } else if (node instanceof KeyValueNode) {
+        let data = generateUI(new KeyNode(node.key.representations[0]?.value ?? node.key.description, node.value));
+        data.initialChildren = getInitialChildren(node);
+        data.value = node;
+        return data;
     }
 
-    let [children, setChildren] = useState(getInitialChildren(data));
-    let [expanded, setExpanded] = useState(false);
+    let type = node.description;
+    while (node instanceof FormatNode) {
+        node = node.value;
+        type += " " + node.description;
+    }
+
+    return {
+        header: <>
+            <span style={{marginRight: "0.5em"}}>{key ? (key + ": ") : ""}{type}</span>
+            <Representer representations={node.representations}/>
+        </>,
+        initialChildren: getInitialChildren(node),
+        value: node
+    };
+}
+
+function TreeNode({data}: {data: DecodeNode | KeyNode}) {
+    let ui = generateUI(data);
+
+    let [children, setChildren] = useState(ui.initialChildren);
+    let [expanded, setExpanded] = useState(true);
     
     useEffect(() => {
-        setChildren(getInitialChildren(data) || decode(data));
+        setChildren(ui.initialChildren || decode(ui.value));
     }, [data]);
 
-    let title = prefix + data.description;
-    if (data.representations.length > 0) title += ": " + data.representations[0].value;
-
     return <div style={{marginLeft: "1em"}} className={expanded ? "expanded" : ""}>
-        <div>
+        <div style={{display: "flex", flexDirection: "row", whiteSpace: "nowrap", alignItems: "flex-start"}}>
             {children && children.length > 0 ? <button className="expand-button" onClick={e => {
                 e.preventDefault();
                 setExpanded(!expanded);
             }}>{expanded ? "-" : "+"}</button> : <div className="expand-button" />}
-            <span>{title}</span>
+            {ui.header}
         </div>
         { expanded ? (children || []).map(part => <TreeNode data={part} />) : [] }
     </div>;

@@ -8,7 +8,7 @@ export class BytesNode implements DecodeNode {
     }
 
     get description(): string {
-        return this.value.length + " bytes";
+        return "Bytes (" + this.value.length + " bytes)";
     }
 
     get representations(): Representation[] {
