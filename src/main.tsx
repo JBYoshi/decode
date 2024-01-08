@@ -8,6 +8,7 @@ import { ListNode } from "./nodes/list.js";
 import { StringNode } from "./nodes/string.js";
 import { createRoot } from "react-dom/client";
 import { ObjectNode } from "./nodes/object.js";
+import { StandardProperties } from "csstype";
 
 function getInitialChildren(data: DecodeNode): (DecodeNode | KeyNode)[] | null {
     if (data instanceof FormatNode) return [data.value];
@@ -24,11 +25,26 @@ function Representer({representations}: {representations: Representation[]}) {
 
     if (representations.length == 0) return <></>;
 
+    let valueStyle: Partial<StandardProperties> = {
+        flexGrow: 1,
+        flexShrink: 1
+    };
+    if (showAll) {
+        valueStyle.overflow = "auto";
+        valueStyle.textOverflow = "clip";
+        valueStyle.whiteSpace = "pre";
+        valueStyle.maxHeight = "80vh";
+    } else {
+        valueStyle.overflow = "hidden";
+        valueStyle.textOverflow = "ellipsis";
+        valueStyle.whiteSpace = "nowrap";
+    }
+
     return <>
         <code
                 ref={viewRef}
                 tabIndex={0}
-                style={{flexGrow: 1, flexShrink: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: showAll ? "initial" : "nowrap"}}
+                style={valueStyle}
                 onFocus={() => setShowAll(true)}
                 onBlur={() => setShowAll(false)}>
             {representations[selectedIndex]?.value}
