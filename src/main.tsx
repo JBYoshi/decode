@@ -25,6 +25,8 @@ function Representer({representations}: {representations: Representation[]}) {
 
     if (representations.length == 0) return <></>;
 
+    let representationText = representations[selectedIndex]?.value;
+
     let valueStyle: Partial<StandardProperties> = {
         flexGrow: 1,
         flexShrink: 1
@@ -32,7 +34,11 @@ function Representer({representations}: {representations: Representation[]}) {
     if (showAll) {
         valueStyle.overflow = "auto";
         valueStyle.textOverflow = "clip";
-        valueStyle.whiteSpace = "pre";
+        if (representationText?.trim().includes("\n")) {
+            valueStyle.whiteSpace = "pre";
+        } else {
+            valueStyle.whiteSpace = "initial";
+        }
         valueStyle.maxHeight = "80vh";
     } else {
         valueStyle.overflow = "hidden";
