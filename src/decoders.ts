@@ -7,6 +7,7 @@ import decodeUUID from "./decoders/uuid.js";
 import decodeJOSELike from "./decoders/jose-like.js";
 import decodeCBOR from "./decoders/cbor.js";
 import { Decoder, DecodeNode } from "./types.js";
+import { decodeASN1 } from "./decoders/asn1.js";
 
 const decoders: Decoder[] = [
     decodeURLLike,
@@ -16,7 +17,8 @@ const decoders: Decoder[] = [
     decodeUTF8,
     decodeUnixTimestamp,
     decodeJOSELike,
-    decodeCBOR
+    decodeCBOR,
+    decodeASN1
 ];
 
 export default function decode(input: DecodeNode): DecodeNode[] {
