@@ -137,13 +137,13 @@ export default function decodeUUID(node: DecodeNode): DecodeNode | null {
         }
 
         if (versionData) {
-            children[1].value = new ConstantNode(versionData, version);
+            children[1].value = new ConstantNode("Version", version, versionData);
         } else {
             if (!hasUuidDashes) {
                 // Probably not a UUID after all
                 return null;
             }
-            children[1].value = new ConstantNode(version);
+            children[1].value = new ConstantNode("Version", version);
         }
 
         let reformatted = input.slice(0, 8) + "-" + input.slice(8, 12) + "-" + input.slice(12, 16) + "-" + input.slice(16, 20) + "-" + input.slice(20, 32);

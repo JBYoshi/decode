@@ -35,7 +35,8 @@ export class ConstantNode extends DecodeNode {
         if (!this.decodedValue) return [{format: "Raw", value: "" + this.rawValue}];
 
         return [
-            {format: "Raw", value: "" + this.rawValue}
+            {format: "Decoded", value: this.decodedValue},
+            {format: "Raw", value: "" + this.rawValue},
         ];
     }
 }
