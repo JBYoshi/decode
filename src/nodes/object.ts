@@ -6,12 +6,15 @@ export interface Property {
 }
 
 export class ObjectNode extends DecodeNode {
-    readonly properties: Property[];
+    readonly properties: DecodeNode[];
 
     constructor(type: string, properties: Property[]) {
         super();
         this.setType(type);
-        this.properties = properties;
+        this.properties = properties.map(prop => {
+            prop.value.setKey(prop.description);
+            return prop.value;
+        });
     }
 
     get defaultType() {
@@ -20,6 +23,10 @@ export class ObjectNode extends DecodeNode {
 
     get defaultRepresentations() {
         return [];
+    }
+
+    get defaultChildren() {
+        return this.properties;
     }
 
 }
