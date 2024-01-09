@@ -1,5 +1,4 @@
 import { BytesNode } from "../nodes/bytes";
-import { FormatNode } from "../nodes/format";
 import { StringNode } from "../nodes/string";
 import { DecodeNode } from "../types";
 
@@ -30,25 +29,25 @@ export default function decodeStringToBytes(input: DecodeNode): DecodeNode | nul
         for (let i = 0; i < text.length; i += 8) {
             result.push(parseInt(text.slice(i, i + 8), 2));
         }
-        return new FormatNode("Binary", new BytesNode(new Uint8Array(result)));
+        return new BytesNode(new Uint8Array(result)).setDecodeRoot("Binary");
     }
     if (text.match(/^[0-9a-fA-F\s]+$/) && text.length % 2 == 0) {
         let result = [];
         for (let i = 0; i < text.length; i += 2) {
             result.push(parseInt(text.slice(i, i + 2), 16));
         }
-        return new FormatNode("Hex", new BytesNode(new Uint8Array(result)));
+        return new BytesNode(new Uint8Array(result)).setDecodeRoot("Hex");
     }
     if (text.match(/^[0-9a-zA-Z+/]+={0,2}$/) && text.length % 4 == 0) {
         try {
-            return new FormatNode("Base 64", new BytesNode(decodeBase64(text)));
+            return new BytesNode(decodeBase64(text)).setDecodeRoot("Base 64");
         } catch (e) {
             console.warn(e);
         }
     }
     if (text.match(/^[0-9a-zA-Z_-]+$/) && text.length % 4 != 1) {
         try {
-            return new FormatNode("URL-safe base 64", new BytesNode(decodeBase64URL(text)));
+            return new BytesNode(decodeBase64URL(text)).setDecodeRoot("URL-safe base 64");
         } catch (e) {
             console.warn(e);
         }

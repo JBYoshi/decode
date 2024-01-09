@@ -1,7 +1,6 @@
 import { Float16Array } from "@petamoriken/float16";
 import { BytesNode } from "../nodes/bytes";
 import { ConstantNode } from "../nodes/constant";
-import { FormatNode } from "../nodes/format";
 import { KeyValueNode } from "../nodes/keyvalue";
 import { ListNode } from "../nodes/list";
 import { NumberNode } from "../nodes/number";
@@ -43,8 +42,6 @@ const BREAK_NODE = new ConstantNode("CBOR Break", 0xFF);
 interface CBORNode {
     debugDescription: string;
     node: DecodeNode;
-    start: number;
-    end: number;
 }
 
 type BreakStatus = "NO_BREAK" | "STRING" | "LIST";
@@ -52,6 +49,16 @@ type BreakStatus = "NO_BREAK" | "STRING" | "LIST";
 // I decided to implement my own CBOR decoder because the existing JavaScript ones couldn't represent
 // the diagnostic format hierarchically.
 function decodeNode(reader: ByteReader, waitingForBreak: BreakStatus = "NO_BREAK"): CBORNode {
+    let start = reader.pos;
+    let base = decodeNodeInternal(reader, waitingForBreak);
+    base.node.addRepresentation("CBOR diagnostic", base.debugDescription);
+    for (let repr of new BytesNode(reader.buf.slice(start, reader.pos)).representations) {
+        base.node.addRepresentation("CBOR " + repr.format, repr.value);
+    }
+    return base;
+}
+
+function decodeNodeInternal(reader: ByteReader, waitingForBreak: BreakStatus = "NO_BREAK"): CBORNode {
     let start = reader.pos;
 
     let typeCode = reader.takeOne();
@@ -76,7 +83,7 @@ function decodeNode(reader: ByteReader, waitingForBreak: BreakStatus = "NO_BREAK
         if (waitingForBreak != "NO_BREAK") {
             if (type == 7) {
                 // This is a break code
-                return {node: BREAK_NODE, debugDescription: "break", start, end: reader.pos};
+                return {node: BREAK_NODE, debugDescription: "break"};
             } else if (waitingForBreak == "STRING") {
                 // Not a break code; reject
                 throw new TypeError("Invalid CBOR: indefinite length not allowed here");
@@ -88,13 +95,13 @@ function decodeNode(reader: ByteReader, waitingForBreak: BreakStatus = "NO_BREAK
         if (indefinite) {
             throw new TypeError("Invalid CBOR: got indefinite length for integer");
         }
-        return {node: new NumberNode(arg, "Integer"), debugDescription: arg.toString(), start, end: reader.pos};
+        return {node: new NumberNode(arg).setType("Integer"), debugDescription: arg.toString()};
     } else if (type == 1) { // Negative integer
         if (indefinite) {
             throw new TypeError("Invalid CBOR: got indefinite length for integer");
         }
         let val = -arg - 1n;
-        return {node: new NumberNode(val, "Integer"), debugDescription: val.toString(), start, end: reader.pos};
+        return {node: new NumberNode(val).setType("Integer"), debugDescription: val.toString()};
     } else if (type == 2) { // Byte string
         let value: Uint8Array;
         let debugDescription: string;
@@ -121,7 +128,7 @@ function decodeNode(reader: ByteReader, waitingForBreak: BreakStatus = "NO_BREAK
             value = reader.take(Number(arg));
             debugDescription = "h'" + BytesNode.toHex(value, "") + "'";
         }
-        return {node: new BytesNode(value), debugDescription, start, end: reader.pos};
+        return {node: new BytesNode(value), debugDescription};
     } else if (type == 3) { // Text string
         let value: string;
         let debugDescription: string;
@@ -147,7 +154,7 @@ function decodeNode(reader: ByteReader, waitingForBreak: BreakStatus = "NO_BREAK
             value = new TextDecoder().decode(reader.take(Number(arg)));
             debugDescription = JSON.stringify(value);
         }
-        return {node: new StringNode(value), debugDescription, start, end: reader.pos};
+        return {node: new StringNode(value), debugDescription};
     } else if (type == 4) { // Array
         let elements: DecodeNode[] = [];
         let debugs: string[] = [];
@@ -170,13 +177,8 @@ function decodeNode(reader: ByteReader, waitingForBreak: BreakStatus = "NO_BREAK
         }
         let debugDescription = (indefinite ? "[_ " : "[") + debugs.join(", ") + "]";
         return {
-            node: new ListNode("Array", [
-                {format: "CBOR diagnostic", value: debugDescription},
-                ...new BytesNode(reader.buf.slice(start, reader.pos)).representations
-            ], elements),
-            debugDescription,
-            start,
-            end: reader.pos
+            node: new ListNode("Array", elements),
+            debugDescription
         };
     } else if (type == 5) { // Map
         let elements: DecodeNode[] = [];
@@ -201,13 +203,8 @@ function decodeNode(reader: ByteReader, waitingForBreak: BreakStatus = "NO_BREAK
         }
         let debugDescription = (indefinite ? "{_ " : "{") + debugs.join(", ") + "}";
         return {
-            node: new ListNode("Map", [
-                {format: "CBOR diagnostic", value: debugDescription},
-                ...new BytesNode(reader.buf.slice(start, reader.pos)).representations
-            ], elements),
-            debugDescription,
-            start,
-            end: reader.pos
+            node: new ListNode("Map", elements),
+            debugDescription
         };
     } else if (type == 6) { // Tag
         if (indefinite) {
@@ -215,10 +212,8 @@ function decodeNode(reader: ByteReader, waitingForBreak: BreakStatus = "NO_BREAK
         }
         let content = decodeNode(reader);
         return {
-            node: new FormatNode("Tag " + arg, content.node),
-            debugDescription: arg + "(" + content.debugDescription + ")",
-            start,
-            end: reader.pos
+            node: content.node.setType("Tag " + arg + " " + content.node.type),
+            debugDescription: arg + "(" + content.debugDescription + ")"
         };
     } else if (type == 7) { // Simple
         let node: DecodeNode;
@@ -228,19 +223,19 @@ function decodeNode(reader: ByteReader, waitingForBreak: BreakStatus = "NO_BREAK
             let array = new ArrayBuffer(2);
             new Uint16Array(array)[0] = Number(arg);
             let value = new Float16Array(array)[0];
-            node = new NumberNode(value, "Float16");
+            node = new NumberNode(value).setType("Float16");
             debugDescription = value + "_1";
         } else if (originalArg == 26n) { // 32-bit float
             let array = new ArrayBuffer(4);
             new Uint32Array(array)[0] = Number(arg);
             let value = new Float32Array(array)[0];
-            node = new NumberNode(value, "Float32");
+            node = new NumberNode(value).setType("Float32");
             debugDescription = value + "_2";
         } else if (originalArg == 27n) { // 64-bit float
             let array = new ArrayBuffer(8);
             new BigUint64Array(array)[0] = arg;
             let value = new Float64Array(array)[0];
-            node = new NumberNode(value, "Float64");
+            node = new NumberNode(value).setType("Float64");
             debugDescription = value + "_3";
         } else if (indefinite) {
             // Break is checked for above
@@ -267,7 +262,7 @@ function decodeNode(reader: ByteReader, waitingForBreak: BreakStatus = "NO_BREAK
             throw new TypeError("Unsupported simple type " + originalArg);
         }
 
-        return {node, debugDescription, start, end: reader.pos};
+        return {node, debugDescription};
     } else {
         throw new TypeError("Should not get here");
     }
@@ -284,11 +279,11 @@ export default function decodeCBOR(input: DecodeNode): DecodeNode | null {
             stream.push(decodeNode(reader));
         }
         if (stream.length == 1) {
-            return new FormatNode("CBOR", stream[0].node);
+            return stream[0].node.setDecodeRoot("CBOR");
         } else {
-            return new FormatNode("CBOR", new ListNode("Stream", [
-                {format: "CBOR diagnostic", value: stream.map(item => item.debugDescription).join(", ")}
-            ], stream.map(item => item.node)));
+            return new ListNode("Stream", stream.map(item => item.node))
+                .addRepresentation("CBOR diagnostic", stream.map(item => item.debugDescription).join(", "))
+                .setDecodeRoot("CBOR");
         }
     } catch (e) {
         console.warn(e);

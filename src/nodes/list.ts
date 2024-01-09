@@ -1,17 +1,27 @@
 import { DecodeNode, Representation } from "../types";
 
-export class ListNode implements DecodeNode {
-    readonly type: string;
-    readonly representations: Representation[];
+export class ListNode extends DecodeNode {
     readonly elements: DecodeNode[];
 
-    constructor(type: string, representations: Representation[], elements: DecodeNode[]) {
-        this.type = type;
-        this.representations = representations;
+    constructor(type: string, elements: DecodeNode[]) {
+        super();
+        this.setType(type);
         this.elements = elements;
     }
 
+    get defaultType() {
+        return "List";
+    }
+
+    get defaultRepresentations() {
+        return [];
+    }
+
     get description() {
-        return this.type + " (" + this.elements.length + " elements)";
+        return this.elements.length + " elements";
+    }
+
+    get defaultChildren() {
+        return this.elements;
     }
 }

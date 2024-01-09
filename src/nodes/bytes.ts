@@ -1,17 +1,22 @@
 import { DecodeNode, Representation } from "../types";
 
-export class BytesNode implements DecodeNode {
+export class BytesNode extends DecodeNode {
     readonly value: Uint8Array;
 
     constructor(value: Uint8Array) {
+        super();
         this.value = value;
     }
 
-    get description(): string {
-        return "Bytes (" + this.value.length + " bytes)";
+    get defaultType() {
+        return "Bytes";
     }
 
-    get representations(): Representation[] {
+    get description(): string {
+        return this.value.length + " bytes";
+    }
+
+    get defaultRepresentations(): Representation[] {
         if (this.value.length == 0) {
             return [];
         }

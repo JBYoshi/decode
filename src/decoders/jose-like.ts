@@ -27,7 +27,7 @@ export default function decodeJOSELike(input: DecodeNode): DecodeNode | null {
 
         if (typeof header == "object" && header?.typ == "JWT" && partsStr.length == 3) {
             try {
-                return new ObjectNode("JWT", input.value, [
+                return new ObjectNode("JWT", [
                     {
                         description: "Header",
                         value: new StringNode(utf8decoder.decode(parts[0]))
@@ -40,12 +40,12 @@ export default function decodeJOSELike(input: DecodeNode): DecodeNode | null {
                         description: "Signature",
                         value: new BytesNode(parts[2])
                     }
-                ]);
+                ]).addRepresentation("JWT", input.value);
             } catch (ignore) {}
         }
 
-        return new ListNode("JOSE-like token", [{format: "Token", value: input.value}],
-            parts.map(part => new BytesNode(part)));
+        return new ListNode("JOSE-like token", parts.map(part => new BytesNode(part)))
+            .addRepresentation("Token", input.value);
     }
     return null;
 }

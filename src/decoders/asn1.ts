@@ -1,9 +1,8 @@
-import { AsnType, BaseBlock, BaseStringBlock, BitString, Boolean, Choice, Constructed, EndOfContent, HexBlock, Integer, Null, ObjectIdentifier, OctetString, RelativeObjectIdentifier, Sequence, fromBER } from "asn1js";
+import { AsnType, BaseStringBlock, BitString, Boolean, Choice, Constructed, EndOfContent, Integer, Null, ObjectIdentifier, OctetString, RelativeObjectIdentifier, fromBER } from "asn1js";
 import { BytesNode } from "../nodes/bytes";
-import { DecodeNode, Representation } from "../types";
+import { DecodeNode } from "../types";
 import { ConstantNode } from "../nodes/constant";
 import { NumberNode } from "../nodes/number";
-import { FormatNode } from "../nodes/format";
 import { ListNode } from "../nodes/list";
 import { StringNode } from "../nodes/string";
 
@@ -15,17 +14,17 @@ function toNode(data: AsnType): DecodeNode {
     } else if (data instanceof EndOfContent) {
         return new ConstantNode("End of Content");
     } else if (data instanceof Integer) {
-        return new NumberNode(data.toBigInt(), "Integer");
+        return new NumberNode(data.toBigInt()).setType("Integer");
     } else if (data instanceof ObjectIdentifier) {
         return new ConstantNode("Object Identifier", data.getValue());
     } else if (data instanceof RelativeObjectIdentifier) {
         return new ConstantNode("Relative Object Identifier", data.getValue());
     } else if (data instanceof Constructed) {
-        return new ListNode(data.constructor.name, [ /* TODO */ ],
+        return new ListNode(data.constructor.name,
             data.valueBlock.value.map(block => toNode(block))
         );
     } else if (data instanceof Choice) {
-        return new ListNode("Choice", [ /* TODO */ ],
+        return new ListNode("Choice",
             data.value.map(block => toNode(block))
         );
     } else if (data instanceof OctetString) {
@@ -41,18 +40,23 @@ function toNode(data: AsnType): DecodeNode {
     }
 }
 
-class BitsNode implements DecodeNode {
+class BitsNode extends DecodeNode {
     readonly bitstring: string;
 
     constructor(bitstring: string) {
+        super();
         this.bitstring = bitstring;
     }
 
-    get description() {
+    get defaultType() {
         return "Bit string";
     }
 
-    get representations() {
+    get description() {
+        return this.bitstring.replace(/ /g, "").length + " bits";
+    }
+
+    get defaultRepresentations() {
         return [
             {format: "Binary", value: this.bitstring}
         ];
@@ -65,7 +69,7 @@ export function decodeASN1(node: DecodeNode): DecodeNode | null {
     try {
         let data = fromBER(node.value);
         if (data.result.error || data.result.blockLength != node.value.length) return null;
-        return new FormatNode("ASN.1", toNode(data.result));
+        return toNode(data.result).setDecodeRoot("ASN.1");
     } catch (e) {
         console.warn(e);
         return null;

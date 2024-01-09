@@ -27,7 +27,6 @@ export default function decodeUUID(node: DecodeNode): DecodeNode | null {
             "ISO", // 111
         ];
 
-        let title = "UUID";
         let versionData = null;
         const children: Property[] = [
             {
@@ -107,11 +106,10 @@ export default function decodeUUID(node: DecodeNode): DecodeNode | null {
                 children.push({
                     description: "Timestamp",
                     value: new DateNode(
-                        new Date(Number(timestamp / 10000n) + uuidEpoch),
-                        {
-                            format: "UUID timestamp",
-                            value: (version == "2" ? timestamp / 0x100000000n : timestamp).toString()
-                        }
+                        new Date(Number(timestamp / 10000n) + uuidEpoch)
+                    ).addRepresentation(
+                        "UUID timestamp",
+                        (version == "2" ? timestamp / 0x100000000n : timestamp).toString()
                     )
                 });
             }
@@ -150,6 +148,6 @@ export default function decodeUUID(node: DecodeNode): DecodeNode | null {
 
         let reformatted = input.slice(0, 8) + "-" + input.slice(8, 12) + "-" + input.slice(12, 16) + "-" + input.slice(16, 20) + "-" + input.slice(20, 32);
 
-        return new ObjectNode("UUID", reformatted, children);
+        return new ObjectNode("UUID", children).addRepresentation("UUID", reformatted);
     }
 }

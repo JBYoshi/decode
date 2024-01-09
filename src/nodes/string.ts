@@ -1,19 +1,19 @@
 import { DecodeNode, Representation } from "../types";
 
-export class StringNode implements DecodeNode {
-    readonly type: string;
+export class StringNode extends DecodeNode {
     readonly value: string;
 
     constructor(value: string, type: string = "String") {
+        super();
         this.value = value;
-        this.type = type;
+        this.setType(type);
     }
 
-    get description(): string {
-        return this.type;
+    get defaultType(): string {
+        return "String";
     }
 
-    get representations(): Representation[] {
+    get defaultRepresentations(): Representation[] {
         return [
             {format: "String", value: this.value}
         ];

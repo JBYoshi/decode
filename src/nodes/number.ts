@@ -1,19 +1,18 @@
 import { DecodeNode, Representation } from "../types";
 
-export class NumberNode implements DecodeNode {
-    readonly type: string;
+export class NumberNode extends DecodeNode {
     readonly value: number | BigInt;
 
-    constructor(value: number | BigInt, type: string = "Number") {
-        this.type = type;
+    constructor(value: number | BigInt) {
+        super();
         this.value = value;
     }
 
-    get description(): string {
-        return this.type;
+    get defaultType(): string {
+        return "Number";
     }
 
-    get representations(): Representation[] {
+    get defaultRepresentations(): Representation[] {
         return [
             {format: "Number", value: "" + this.value}
         ];

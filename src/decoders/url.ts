@@ -1,5 +1,4 @@
 import { ConstantNode } from "../nodes/constant";
-import { FormatNode } from "../nodes/format";
 import { KeyValueNode } from "../nodes/keyvalue";
 import { ListNode } from "../nodes/list";
 import { NumberNode } from "../nodes/number";
@@ -54,9 +53,10 @@ export default function decodeURLLike(input: DecodeNode): DecodeNode | null {
             if (url.pathname) {
                 parts.push({
                     description: "Path",
-                    value: new ListNode("Path string", [
-                        {format: "Path string", value: url.pathname}
-                    ], url.pathname.replace(/^\//, "").split("/").map(element => new StringNode(decodeURIComponent(element))))
+                    value: new ListNode(
+                        "Path string",
+                        url.pathname.replace(/^\//, "").split("/").map(element => new StringNode(decodeURIComponent(element)))
+                    ).addRepresentation("Path string", url.pathname)
                 });
             }
             if (url.search) {
@@ -64,11 +64,9 @@ export default function decodeURLLike(input: DecodeNode): DecodeNode | null {
                     description: "Query",
                     value: new ListNode(
                         "Query string",
-                        [
-                            {format: "Query string", value: url.search}
-                        ],
                         [...url.searchParams.entries()]
-                            .map(([key, value]) => new KeyValueNode(new StringNode(key), new StringNode(value))))
+                            .map(([key, value]) => new KeyValueNode(new StringNode(key), new StringNode(value)))
+                    ).addRepresentation("Query string", url.search)
                 });
             }
             if (url.hash) {
@@ -78,11 +76,11 @@ export default function decodeURLLike(input: DecodeNode): DecodeNode | null {
                 });
             }
 
-            return new ObjectNode("URL", input.value, parts);
+            return new ObjectNode("URL", parts).addRepresentation("URL", url.toString());
         }
 
         if (input.value.includes("%")) {
-            return new FormatNode("URL Component", new StringNode(decodeURIComponent(input.value)));
+            return new StringNode(decodeURIComponent(input.value)).setDecodeRoot("URL Component");
         }
     }
     return null;

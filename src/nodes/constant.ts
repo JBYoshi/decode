@@ -4,8 +4,8 @@ import { DecodeNode, Representation } from "../types";
  * Represents a value that needs no further decoding, such as a boolean value,
  * enum value, or null value. Can optionally have a human-readable name.
  */
-export class ConstantNode implements DecodeNode {
-    type: string;
+export class ConstantNode extends DecodeNode {
+    defaultType: string;
     decodedValue?: string;
     rawValue?: string;
 
@@ -15,7 +15,8 @@ export class ConstantNode implements DecodeNode {
      * @param decodedValue A human-readable representation of the value, if known
      */
     constructor(type: string, rawValue?: string | number | bigint | boolean, decodedValue?: string) {
-        this.type = type;
+        super();
+        this.defaultType = type;
         this.rawValue = (rawValue === undefined) ? undefined : rawValue + "";
         this.decodedValue = decodedValue;
     }
@@ -29,11 +30,7 @@ export class ConstantNode implements DecodeNode {
         return ConstantNode.FALSE;
     }
 
-    get description() {
-        return this.type;
-    }
-
-    get representations(): Representation[] {
+    get defaultRepresentations(): Representation[] {
         if (!this.rawValue) return [];
         if (!this.decodedValue) return [{format: "Raw", value: "" + this.rawValue}];
 

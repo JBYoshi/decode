@@ -1,22 +1,9 @@
 import { StrictMode, useEffect, useRef, useState } from "react";
 import decode from "./decoders.js";
 import { DecodeNode, Representation } from "./types.js";
-import { FormatNode } from "./nodes/format.js";
-import { KeyValueNode } from "./nodes/keyvalue.js";
-import { KeyNode } from "./nodes/key.js";
-import { ListNode } from "./nodes/list.js";
 import { StringNode } from "./nodes/string.js";
 import { createRoot } from "react-dom/client";
-import { ObjectNode } from "./nodes/object.js";
 import { StandardProperties } from "csstype";
-
-function getInitialChildren(data: DecodeNode): (DecodeNode | KeyNode)[] | null {
-    if (data instanceof FormatNode) return [data.value];
-    if (data instanceof KeyValueNode) return [new KeyNode("Key", data.key), new KeyNode("Value", data.value)];
-    if (data instanceof ListNode) return data.elements;
-    if (data instanceof ObjectNode) return data.properties.map(prop => new KeyNode(prop.description, prop.value));
-    return null;
-}
 
 function Representer({representations}: {representations: Representation[]}) {
     let [selectedIndex, setSelectedIndex] = useState(0);
@@ -64,49 +51,16 @@ function Representer({representations}: {representations: Representation[]}) {
     </>;
 }
 
-function generateUI(node: DecodeNode | KeyNode): {
-    header: JSX.Element,
-    initialChildren: (DecodeNode | KeyNode)[] | null,
-    value: DecodeNode
-} {
-    let key = null;
-    if (node instanceof KeyNode) {
-        key = node.key;
-        node = node.value;
-    } else if (node instanceof FormatNode) {
-        key = node.format;
-        node = node.value;
-    } else if (node instanceof KeyValueNode) {
-        let data = generateUI(new KeyNode(node.key.representations[0]?.value ?? node.key.description, node.value));
-        data.initialChildren = getInitialChildren(node);
-        data.value = node;
-        return data;
-    }
+function TreeNode({data}: {data: DecodeNode}) {
+    let label = data.type;
+    if (data.key) label = data.key + ": " + label;
+    if (data.description) label += " (" + data.description + ")";
 
-    let type = node.description;
-    while (node instanceof FormatNode) {
-        node = node.value;
-        type += " " + node.description;
-    }
-
-    return {
-        header: <>
-            <span style={{marginRight: "0.5em"}}>{key ? (key + ": ") : ""}{type}</span>
-            <Representer representations={node.representations}/>
-        </>,
-        initialChildren: getInitialChildren(node),
-        value: node
-    };
-}
-
-function TreeNode({data}: {data: DecodeNode | KeyNode}) {
-    let ui = generateUI(data);
-
-    let [children, setChildren] = useState(ui.initialChildren);
+    let [children, setChildren] = useState(data.defaultChildren);
     let [expanded, setExpanded] = useState(true);
     
     useEffect(() => {
-        setChildren(ui.initialChildren || decode(ui.value));
+        setChildren([...data.defaultChildren, ...decode(data)]);
     }, [data]);
 
     return <div style={{marginLeft: "1em"}} className={expanded ? "expanded" : ""}>
@@ -115,7 +69,8 @@ function TreeNode({data}: {data: DecodeNode | KeyNode}) {
                 e.preventDefault();
                 setExpanded(!expanded);
             }}>{expanded ? "-" : "+"}</button> : <div className="expand-button" />}
-            {ui.header}
+            <span style={{marginRight: "0.5em"}}>{label}</span>
+            <Representer representations={data.representations}/>
         </div>
         { expanded ? (children || []).map(part => <TreeNode data={part} />) : [] }
     </div>;

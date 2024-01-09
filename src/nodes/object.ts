@@ -5,26 +5,21 @@ export interface Property {
     value: DecodeNode;
 }
 
-export class ObjectNode implements DecodeNode {
-    readonly type?: string;
+export class ObjectNode extends DecodeNode {
     readonly properties: Property[];
-    readonly representations: Representation[];
 
-    constructor(type: string, representations: string | Representation[], properties: Property[]) {
-        this.type = type;
-        if (typeof representations == "string") {
-            this.representations = [{
-                format: type,
-                value: representations
-            }];
-        } else {
-            this.representations = representations;
-        }
+    constructor(type: string, properties: Property[]) {
+        super();
+        this.setType(type);
         this.properties = properties;
     }
 
-    get description() {
-        return this.type;
+    get defaultType() {
+        return "Object";
+    }
+
+    get defaultRepresentations() {
+        return [];
     }
 
 }
