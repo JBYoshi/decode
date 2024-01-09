@@ -2,8 +2,12 @@ import { BytesNode } from "../nodes/bytes";
 import { StringNode } from "../nodes/string";
 import { DecodeNode } from "../types";
 
-export function decodeBase64(input: string): Uint8Array {
+export function decodeBase64(input: string): Uint8Array | null {
     let decoded = atob(input);
+    // Lots of text that happens to be the right length will pass this.
+    // Re-encoding helps verify that it's really a match, since the last bytes
+    // always encode one way for a given input in real base 64.
+    if (btoa(decoded) != input) return null;
     let array: number[] = [];
     for (let i = 0; i < decoded.length; i++) {
         array.push(decoded.charCodeAt(i));
@@ -11,7 +15,7 @@ export function decodeBase64(input: string): Uint8Array {
     return new Uint8Array(array);
 }
 
-export function decodeBase64URL(input: string): Uint8Array {
+export function decodeBase64URL(input: string): Uint8Array | null {
     let inStandardBase64 = input.replace(/_/g, "/").replace(/-/g, "+");
     while (inStandardBase64.length % 4 != 0) {
         inStandardBase64 += "=";
@@ -39,15 +43,23 @@ export default function decodeStringToBytes(input: DecodeNode): DecodeNode | nul
         return new BytesNode(new Uint8Array(result)).setDecodeRoot("Hex");
     }
     if (text.match(/^[0-9a-zA-Z+/]+={0,2}$/) && text.length % 4 == 0) {
+        let decoded = decodeBase64(text);
+        if (!decoded) {
+            return null;
+        }
         try {
-            return new BytesNode(decodeBase64(text)).setDecodeRoot("Base 64");
+            return new BytesNode(decoded).setDecodeRoot("Base 64");
         } catch (e) {
             console.warn(e);
         }
     }
     if (text.match(/^[0-9a-zA-Z_-]+$/) && text.length % 4 != 1) {
+        let decoded = decodeBase64URL(text);
+        if (!decoded) {
+            return null;
+        }
         try {
-            return new BytesNode(decodeBase64URL(text)).setDecodeRoot("URL-safe base 64");
+            return new BytesNode(decoded).setDecodeRoot("URL-safe base 64");
         } catch (e) {
             console.warn(e);
         }

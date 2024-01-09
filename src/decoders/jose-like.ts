@@ -12,9 +12,15 @@ let utf8decoder = new TextDecoder(undefined, {
 export default function decodeJOSELike(input: DecodeNode): DecodeNode | null {
     if (input instanceof StringNode && input.value.match(/[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)+/g)) {
         let partsStr = input.value.split(".");
-        let parts: Uint8Array[];
+        let parts: Uint8Array[] = [];
         try {
-            parts = partsStr.map(decodeBase64URL);
+            for (let part of partsStr) {
+                let decoded = decodeBase64URL(part);
+                if (decoded == null) {
+                    return null;
+                }
+                parts.push(decoded);
+            }
         } catch (e) {
             return null;
         }
