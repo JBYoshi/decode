@@ -37,8 +37,7 @@ function toNode(data: AsnType): DecodeNode {
         return new BytesNode(new Uint8Array(data.getValue()));
     } else if (data instanceof BitString) {
         // Bits, not bytes; can't do very much here.
-        // There's no convenient decode function so I'll use this as a workaround.
-        return new BitsNode(data.toString("ascii").split(" : ")[1]);
+        return new BitsNode(getBitsFromBitString(data));
     } else if (data instanceof BaseStringBlock) {
         let name = "";
         if (data instanceof TIME) {
@@ -84,6 +83,30 @@ function toNode(data: AsnType): DecodeNode {
     } else {
         return new ConstantNode("Unknown", "TODO");
     }
+}
+
+function getBitsFromBitString(data: BitString): string {
+    if (data.valueBlock.isConstructed) {
+        let bits = "";
+        for (let block of data.valueBlock.value) {
+            if (!(block instanceof BitString)) {
+                throw new TypeError("Constructed bit string must contain only bit strings");
+            }
+            if (block.valueBlock.isConstructed) {
+                throw new TypeError("Constructed bit string must not contain other constructed bit strings");
+            }
+            bits += getBitsFromBitString(block as BitString);
+        }
+        return bits;
+    }
+    // Copied from the asn1js toString() implementation.
+    const bits = [];
+    const valueHex = data.valueBlock.valueHexView;
+    for (const byte of valueHex) {
+        bits.push(byte.toString(2).padStart(8, "0"));
+    }
+    const bitsStr = bits.join("");
+    return bitsStr.slice(0, bitsStr.length - data.valueBlock.unusedBits);
 }
 
 class BitsNode extends DecodeNode {
