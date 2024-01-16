@@ -20,7 +20,7 @@ function toNode(data: AsnType): DecodeNode {
     } else if (data instanceof RelativeObjectIdentifier) {
         return new ConstantNode("Relative Object Identifier", data.getValue());
     } else if (data instanceof Constructed) {
-        return new ListNode(data.constructor.name,
+        return new ListNode(data.name,
             data.valueBlock.value.map(block => toNode(block))
         );
     } else if (data instanceof Choice) {
@@ -34,9 +34,9 @@ function toNode(data: AsnType): DecodeNode {
         // There's no convenient decode function so I'll use this as a workaround.
         return new BitsNode(data.toString("ascii").split(" : ")[1]);
     } else if (data instanceof BaseStringBlock) {
-        return new StringNode(data.getValue(), data.constructor.name);
+        return new StringNode(data.getValue(), data.name);
     } else {
-        return new ConstantNode(data.constructor.name, "TODO");
+        return new ConstantNode(data.name, "TODO");
     }
 }
 
