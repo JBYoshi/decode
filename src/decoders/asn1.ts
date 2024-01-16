@@ -118,7 +118,7 @@ class BitsNode extends DecodeNode {
     }
 
     get defaultType() {
-        return "Bit string";
+        return "Bit String";
     }
 
     get description() {
