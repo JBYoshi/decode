@@ -138,7 +138,7 @@ export function decodeASN1(node: DecodeNode): DecodeNode | null {
     try {
         let data = fromBER(node.value);
         if (data.result.error || data.result.blockLength != node.value.length) return null;
-        return toNode(data.result).setDecodeRoot("ASN.1");
+        return toNode(data.result).setDecodeRoot("ASN.1 BER");
     } catch (e) {
         console.warn(e);
         return null;
