@@ -3,7 +3,7 @@ import { ListNode } from "../nodes/list";
 import { ObjectNode } from "../nodes/object";
 import { StringNode } from "../nodes/string";
 import { DecodeNode } from "../types";
-import { decodeBase64URL } from "./str-to-bytes.js";
+import { decodeBase64URL } from "./str-to-bytes";
 
 let utf8decoder = new TextDecoder(undefined, {
     fatal: true,

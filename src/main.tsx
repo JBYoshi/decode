@@ -1,7 +1,7 @@
 import { StrictMode, useEffect, useRef, useState } from "react";
-import decode from "./decoders.js";
-import { DecodeNode, Representation } from "./types.js";
-import { StringNode } from "./nodes/string.js";
+import decode from "./decoders";
+import { DecodeNode, Representation } from "./types";
+import { StringNode } from "./nodes/string";
 import { createRoot } from "react-dom/client";
 import { StandardProperties } from "csstype";
 

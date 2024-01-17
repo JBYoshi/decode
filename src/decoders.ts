@@ -1,13 +1,13 @@
-import { decodeUnixTimestamp } from "./decoders/unix-timestamp.js";
-import decodeJSON from "./decoders/json.js";
-import decodeStringToBytes from "./decoders/str-to-bytes.js";
-import decodeURLLike from "./decoders/url.js";
-import decodeUTF8 from "./decoders/utf8.js";
-import decodeUUID from "./decoders/uuid.js";
-import decodeJOSELike from "./decoders/jose-like.js";
-import decodeCBOR from "./decoders/cbor.js";
-import { Decoder, DecodeNode } from "./types.js";
-import { decodeASN1 } from "./decoders/asn1.js";
+import { decodeUnixTimestamp } from "./decoders/unix-timestamp";
+import decodeJSON from "./decoders/json";
+import decodeStringToBytes from "./decoders/str-to-bytes";
+import decodeURLLike from "./decoders/url";
+import decodeUTF8 from "./decoders/utf8";
+import decodeUUID from "./decoders/uuid";
+import decodeJOSELike from "./decoders/jose-like";
+import decodeCBOR from "./decoders/cbor";
+import { Decoder, DecodeNode } from "./types";
+import { decodeASN1 } from "./decoders/asn1";
 
 const decoders: Decoder[] = [
     decodeURLLike,
