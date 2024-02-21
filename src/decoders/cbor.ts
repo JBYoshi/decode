@@ -59,8 +59,6 @@ function decodeNode(reader: ByteReader, waitingForBreak: BreakStatus = "NO_BREAK
 }
 
 function decodeNodeInternal(reader: ByteReader, waitingForBreak: BreakStatus = "NO_BREAK"): CBORNode {
-    let start = reader.pos;
-
     let typeCode = reader.takeOne();
 
     let type = typeCode >> 5;

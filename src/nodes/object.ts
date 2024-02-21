@@ -1,4 +1,4 @@
-import { DecodeNode, Representation } from "../types";
+import { DecodeNode } from "../types";
 
 export interface Property {
     description: string;
