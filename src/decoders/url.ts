@@ -35,7 +35,7 @@ export default function decodeURLLike(input: DecodeNode): DecodeNode | null {
             if (url.password) {
                 parts.push({
                     description: "Password",
-                    value: new StringNode(url.username)
+                    value: new StringNode(url.password)
                 });
             }
             if (url.hostname) {
@@ -66,22 +66,22 @@ export default function decodeURLLike(input: DecodeNode): DecodeNode | null {
                         "Query string",
                         [...url.searchParams.entries()]
                             .map(([key, value]) => new KeyValueNode(new StringNode(key), new StringNode(value)))
-                    ).addRepresentation("Query string", url.search)
+                    ).addRepresentation("Query string", url.search.substring(1))
                 });
             }
             if (url.hash) {
                 parts.push({
                     description: "Hash",
-                    value: new StringNode(url.hash)
+                    value: new StringNode(url.hash.substring(1))
                 });
             }
 
             return new ObjectNode("URL", parts).addRepresentation("URL", url.toString());
         }
+    }
 
-        if (input.value.includes("%")) {
-            return new StringNode(decodeURIComponent(input.value)).setDecodeRoot("URL Component");
-        }
+    if (input.value.includes("%")) {
+        return new StringNode(decodeURIComponent(input.value)).setDecodeRoot("URL Component");
     }
     return null;
 }
