@@ -1,0 +1,9 @@
+Node properties
+- Type:
+  - Every node must have a type. (Representation nodes are excluded.)
+  - Type names can be overridden by the format. For example, CBOR uses arrays, while ASN.1 uses lists.
+- Key:
+  - I'm not going to enforce consistency on the type level.
+  - If the key is user-provided, then it could potentially be decoded further.
+  - If the key is system-provided, then it can't be decoded further.
+  - Not everything will have a key.
