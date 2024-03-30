@@ -81,7 +81,12 @@ export default function decodeURLLike(input: DecodeNode): DecodeNode | null {
     }
 
     if (input.value.includes("%")) {
-        return new StringNode(decodeURIComponent(input.value)).setDecodeRoot("URL Component");
+        try {
+            return new StringNode(decodeURIComponent(input.value)).setDecodeRoot("URL Component");
+        } catch (e) {
+            return null;
+        }
     }
+
     return null;
 }
