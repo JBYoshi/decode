@@ -281,7 +281,9 @@ export default function decodeCBOR(input: DecodeNode): DecodeNode | null {
         } else {
             return new ListNode("Stream", stream.map(item => item.node))
                 .addRepresentation("CBOR diagnostic", stream.map(item => item.debugDescription).join(", "))
-                .setDecodeRoot("CBOR");
+                .setDecodeRoot("CBOR")
+                .setSignificant(false)
+                .setChildrenSignificant(false);
         }
     } catch (e) {
         console.warn(e);

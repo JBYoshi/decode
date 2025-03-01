@@ -7,6 +7,7 @@ export class ListNode extends DecodeNode {
         super();
         this.setType(type);
         this.elements = elements;
+        this.setChildrenSignificant(true);
     }
 
     get defaultType() {

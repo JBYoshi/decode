@@ -24,5 +24,11 @@ const decoders: Decoder[] = [
 ];
 
 export default function decode(input: DecodeNode): DecodeNode[] {
-    return decoders.map(decoder => decoder(input)).filter(x => x != null) as DecodeNode[];
+    let decoded = decoders.map(decoder => decoder(input)).filter(x => x != null) as DecodeNode[];
+    for (let node of decoded) {
+        if (node.significant === null) {
+            node.significant = true;
+        }
+    }
+    return decoded;
 }

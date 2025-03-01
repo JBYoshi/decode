@@ -15,6 +15,7 @@ export class ObjectNode extends DecodeNode {
             prop.value.setKey(prop.description);
             return prop.value;
         });
+        this.setChildrenSignificant(false);
     }
 
     get defaultType() {

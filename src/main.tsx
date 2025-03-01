@@ -51,28 +51,53 @@ function Representer({representations}: {representations: Representation[]}) {
     </>;
 }
 
-function TreeNode({data}: {data: DecodeNode}) {
+function TreeNode({data, hidden = false, onSignificantNodeDecoded = () => {}}: {data: DecodeNode, hidden?: boolean, onSignificantNodeDecoded?: () => void}) {
     let label = data.type;
     if (data.key) label = data.key + ": " + label;
     if (data.description) label += " (" + data.description + ")";
 
     let [children, setChildren] = useState(data.defaultChildren);
-    let [expanded, setExpanded] = useState(true);
+    let [expanded, setExpanded] = useState(false);
+    let [expansionButtonClicked, setExpansionButtonClicked] = useState(false);
     
     useEffect(() => {
-        setChildren([...data.defaultChildren, ...decode(data)]);
+        if (data.significant || data.childrenSignificant) {
+            onSignificantNodeDecoded();
+            if (data.childrenSignificant) {
+                if (!expansionButtonClicked && !expanded) {
+                    setExpanded(true);
+                }
+                onSignificantNodeDecoded();
+            }
+        }
+        let newChildren = [...data.defaultChildren, ...decode(data)];
+        for (let child of newChildren) {
+            if (child.significant) {
+                if (!expansionButtonClicked && !expanded) {
+                    setExpanded(true);
+                }
+                onSignificantNodeDecoded();
+            }
+        }
+        setChildren(newChildren);
     }, [data]);
 
-    return <div style={{marginLeft: "1em"}} className={expanded ? "expanded" : ""}>
+    return <div style={{marginLeft: "1em"}} className={expanded ? "expanded" : ""} hidden={hidden}>
         <div style={{display: "flex", flexDirection: "row", whiteSpace: "nowrap", alignItems: "flex-start"}}>
             {children && children.length > 0 ? <button className="expand-button" onClick={e => {
                 e.preventDefault();
+                setExpansionButtonClicked(true);
                 setExpanded(!expanded);
             }}>{expanded ? "-" : "+"}</button> : <div className="expand-button" />}
             <span style={{marginRight: "0.5em"}}>{label}</span>
             <Representer representations={data.representations}/>
         </div>
-        { expanded ? (children || []).map(part => <TreeNode data={part} />) : [] }
+        { (children || []).map(part => <TreeNode data={part} hidden={!expanded} onSignificantNodeDecoded={() => {
+            if (!expansionButtonClicked && !expanded) {
+                setExpanded(true);
+                onSignificantNodeDecoded();
+            }
+        }}/>) }
     </div>;
 }
 

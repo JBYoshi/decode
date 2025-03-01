@@ -33,14 +33,14 @@ export default function decodeStringToBytes(input: DecodeNode): DecodeNode | nul
         for (let i = 0; i < text.length; i += 8) {
             result.push(parseInt(text.slice(i, i + 8), 2));
         }
-        return new BytesNode(new Uint8Array(result)).setDecodeRoot("Binary");
+        return new BytesNode(new Uint8Array(result)).setDecodeRoot("Binary").setSignificant(false);
     }
     if (text.match(/^[0-9a-fA-F\s]+$/) && text.length % 2 == 0) {
         let result = [];
         for (let i = 0; i < text.length; i += 2) {
             result.push(parseInt(text.slice(i, i + 2), 16));
         }
-        return new BytesNode(new Uint8Array(result)).setDecodeRoot("Hex");
+        return new BytesNode(new Uint8Array(result)).setDecodeRoot("Hex").setSignificant(false);
     }
     if (text.match(/^[0-9a-zA-Z+/]+={0,2}$/) && text.length % 4 == 0) {
         let decoded = decodeBase64(text);
@@ -48,7 +48,7 @@ export default function decodeStringToBytes(input: DecodeNode): DecodeNode | nul
             return null;
         }
         try {
-            return new BytesNode(decoded).setDecodeRoot("Base 64");
+            return new BytesNode(decoded).setDecodeRoot("Base 64").setSignificant(false);
         } catch (e) {
             console.warn(e);
         }
@@ -59,7 +59,7 @@ export default function decodeStringToBytes(input: DecodeNode): DecodeNode | nul
             return null;
         }
         try {
-            return new BytesNode(decoded).setDecodeRoot("URL-safe base 64");
+            return new BytesNode(decoded).setDecodeRoot("URL-safe base 64").setSignificant(false);
         } catch (e) {
             console.warn(e);
         }

@@ -9,7 +9,8 @@ export abstract class DecodeNode {
     private customKey: string | null = null;
     private customType: string | null = null;
     private customRepresentations: Representation[] = [];
-
+    childrenSignificant: boolean = false;
+    significant: boolean | null = null;
 
     get type(): string {
         return this.customType || this.defaultType;
@@ -46,6 +47,16 @@ export abstract class DecodeNode {
     setDecodeRoot(format: string): this {
         // TODO: Figure out how I want to handle this
         this.setKey(format);
+        return this;
+    }
+
+    setSignificant(significant: boolean): this {
+        this.significant = significant;
+        return this;
+    }
+
+    setChildrenSignificant(significant: boolean): this {
+        this.childrenSignificant = significant;
         return this;
     }
 

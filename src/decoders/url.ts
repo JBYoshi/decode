@@ -56,7 +56,7 @@ export default function decodeURLLike(input: DecodeNode): DecodeNode | null {
                     value: new ListNode(
                         "Path string",
                         url.pathname.replace(/^\//, "").split("/").map(element => new StringNode(decodeURIComponent(element)))
-                    ).addRepresentation("Path string", url.pathname)
+                    ).addRepresentation("Path string", url.pathname).setChildrenSignificant(false)
                 });
             }
             if (url.search) {
@@ -66,7 +66,7 @@ export default function decodeURLLike(input: DecodeNode): DecodeNode | null {
                         "Query string",
                         [...url.searchParams.entries()]
                             .map(([key, value]) => new KeyValueNode(new StringNode(key), new StringNode(value)))
-                    ).addRepresentation("Query string", url.search.substring(1))
+                    ).addRepresentation("Query string", url.search.substring(1)).setChildrenSignificant(false)
                 });
             }
             if (url.hash) {
@@ -76,7 +76,7 @@ export default function decodeURLLike(input: DecodeNode): DecodeNode | null {
                 });
             }
 
-            return new ObjectNode("URL", parts).addRepresentation("URL", url.toString());
+            return new ObjectNode("URL", parts).addRepresentation("URL", url.toString()).setSignificant(false);
         }
     }
 
