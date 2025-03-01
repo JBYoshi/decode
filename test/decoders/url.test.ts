@@ -20,11 +20,11 @@ describe("URL decoder", function() {
                 new StringNode("a"),
                 new StringNode("b"),
                 new StringNode("c")
-            ]).addRepresentation("Path string", "/a/b/c")},
+            ]).addRepresentation("Path string", "/a/b/c").setChildrenSignificant(false)},
             {description: "Query", value: new ListNode("Query string", [
                 new KeyValueNode(new StringNode("q1"), new StringNode("2")),
                 new KeyValueNode(new StringNode("q3"), new StringNode("4"))
-            ]).addRepresentation("Query string", "q1=2&q3=4")},
+            ]).addRepresentation("Query string", "q1=2&q3=4").setChildrenSignificant(false)},
             {description: "Hash", value: new StringNode("hash")}
         ]).addRepresentation("URL", url));
     });
@@ -44,7 +44,7 @@ describe("URL decoder", function() {
                 new KeyValueNode(new StringNode("e"), new StringNode("f"))
             ]).addRepresentation("Query string", "%65=%66")},
             {description: "Hash", value: new StringNode("%67")} // TODO
-        ]).addRepresentation("URL", url.replace("%63", "c"))); // TODO
+        ]).addRepresentation("URL", url.replace("%63", "c")).setChildrenSignificant(true)); // TODO
     });
 
     it("decodes bare components correctly", function() {
