@@ -51,6 +51,8 @@ export default function decodeJOSELike(input: DecodeNode): DecodeNode | null {
         }
 
         return new ListNode("JOSE-like token", parts.map(part => new BytesNode(part)))
+            .setSignificant(false)
+            .setChildrenSignificant(false)
             .addRepresentation("Token", input.value);
     }
     return null;
