@@ -11,6 +11,7 @@ export abstract class DecodeNode {
     private customRepresentations: Representation[] = [];
     childrenSignificant: boolean = false;
     significant: boolean | null = null;
+    link: {href: string, title: string} | null = null;
 
     get type(): string {
         return this.customType || this.defaultType;
@@ -62,6 +63,11 @@ export abstract class DecodeNode {
 
     addRepresentation(format: string, value: string): this {
         this.customRepresentations.push({format, value});
+        return this;
+    }
+
+    setLink(href: string, title: string): this {
+        this.link = {href, title};
         return this;
     }
 }

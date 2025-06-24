@@ -76,7 +76,10 @@ export default function decodeURLLike(input: DecodeNode): DecodeNode | null {
                 });
             }
 
-            return new ObjectNode("URL", parts).addRepresentation("URL", url.toString()).setChildrenSignificant(url.href.includes("%"));
+            return new ObjectNode("URL", parts)
+                .setLink(url.toString(), "Open")
+                .addRepresentation("URL", url.toString())
+                .setChildrenSignificant(url.href.includes("%"));
         }
     }
 

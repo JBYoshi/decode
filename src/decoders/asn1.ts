@@ -16,7 +16,8 @@ function toNode(data: AsnType): DecodeNode {
     } else if (data instanceof Integer) {
         return new NumberNode(data.toBigInt()).setType("Integer");
     } else if (data instanceof ObjectIdentifier) {
-        return new ConstantNode("Object Identifier", data.getValue());
+        return new ConstantNode("Object Identifier", data.getValue())
+            .setLink("https://oid-base.com/get/" + data.getValue(), "OID Info");
     } else if (data instanceof RelativeObjectIdentifier) {
         return new ConstantNode("Relative Object Identifier", data.getValue());
     } else if (data instanceof Constructed) {

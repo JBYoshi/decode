@@ -5,7 +5,7 @@ import { StringNode } from "./nodes/string";
 import { createRoot } from "react-dom/client";
 import { StandardProperties } from "csstype";
 
-function Representer({representations}: {representations: Representation[]}) {
+function Representer({representations, link}: {representations: Representation[], link: {href: string, title: string} | null}) {
     let [selectedIndex, setSelectedIndex] = useState(0);
     let [showAll, setShowAll] = useState(false);
     let viewRef = useRef<HTMLSelectElement>();
@@ -42,6 +42,7 @@ function Representer({representations}: {representations: Representation[]}) {
                 onBlur={() => setShowAll(false)}>
             {representations[selectedIndex]?.value}
         </code>
+        {link && <a href={link.href} target="_blank" style={{marginRight: "0.5em"}}>{link.title}</a>}
         <select value={selectedIndex} onChange={e => {
             setSelectedIndex(parseInt(e.target.value));
             viewRef.current.focus();
@@ -90,7 +91,7 @@ function TreeNode({data, hidden = false, onSignificantNodeDecoded = () => {}}: {
                 setExpanded(!expanded);
             }}>{expanded ? "-" : "+"}</button> : <div className="expand-button" />}
             <span style={{marginRight: "0.5em"}}>{label}</span>
-            <Representer representations={data.representations}/>
+            <Representer representations={data.representations} link={data.link}/>
         </div>
         { (children || []).map(part => <TreeNode data={part} hidden={!expanded} onSignificantNodeDecoded={() => {
             if (!expansionButtonClicked && !expanded) {

@@ -26,7 +26,7 @@ describe("URL decoder", function() {
                 new KeyValueNode(new StringNode("q3"), new StringNode("4"))
             ]).addRepresentation("Query string", "q1=2&q3=4").setChildrenSignificant(false)},
             {description: "Hash", value: new StringNode("hash")}
-        ]).addRepresentation("URL", url));
+        ]).addRepresentation("URL", url).setLink(url, "Open"));
     });
 
     it("decodes components within a URL correctly", function() {
@@ -44,7 +44,11 @@ describe("URL decoder", function() {
                 new KeyValueNode(new StringNode("e"), new StringNode("f"))
             ]).addRepresentation("Query string", "%65=%66")},
             {description: "Hash", value: new StringNode("%67")} // TODO
-        ]).addRepresentation("URL", url.replace("%63", "c")).setChildrenSignificant(true)); // TODO
+        ])
+            .addRepresentation("URL", url.replace("%63", "c")) // TODO
+            .setChildrenSignificant(true)
+            .setLink(url.replace("%63", "c"), "Open")
+        );
     });
 
     it("decodes bare components correctly", function() {
