@@ -51,6 +51,24 @@ describe("URL decoder", function() {
         );
     });
 
+    it("decodes relative URLs correctly", function() {
+        let url = "/%64?%65=%66#%67";
+        let decoded = decodeURLLike(new StringNode(url));
+        expect(decoded).toEqual(new ObjectNode("Relative URL", [
+            {description: "Path", value: new ListNode("Path string", [
+                new StringNode("d")
+            ]).addRepresentation("Path string", "/%64")},
+            {description: "Query", value: new ListNode("Query string", [
+                new KeyValueNode(new StringNode("e"), new StringNode("f"))
+            ]).addRepresentation("Query string", "%65=%66")},
+            {description: "Hash", value: new StringNode("%67")} // TODO
+        ])
+            .addRepresentation("Relative URL", url.replace("%63", "c")) // TODO
+            .setChildrenSignificant(false)
+            .setSignificant(false)
+        );
+    });
+
     it("decodes bare components correctly", function() {
         let url = "%61%62%63";
         let decoded = decodeURLLike(new StringNode(url));
