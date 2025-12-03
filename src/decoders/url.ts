@@ -12,7 +12,7 @@ export default function decodeURLLike(input: DecodeNode): DecodeNode | null {
     // For this, I am specifying "only characters that are not allowed in any of the URL control sets."
     // In the URL spec (https://url.spec.whatwg.org), this reduces to excluding characters in the fragment percent-encode set
     // and the query percent-encode set. Everything else is derived from these with other characters blocked.
-    if (input.value.match(/^([!$#$&-;=?-~]|%[0-9a-fA-F]{2})+$/) && (input.value.includes("://") || input.value.startsWith("/"))) {
+    if (input.value.match(/^([!$#&-;=?-~]|%[0-9a-fA-F]{2})+$/) && (input.value.includes("://") || input.value.startsWith("/"))) {
         let url: URL | null = null;
         let isConvertedRelativeURL = false;
         try {
