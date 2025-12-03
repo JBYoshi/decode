@@ -5,6 +5,7 @@ import { ConstantNode } from "../nodes/constant";
 import { NumberNode } from "../nodes/number";
 import { ListNode } from "../nodes/list";
 import { StringNode } from "../nodes/string";
+import {DateNode} from "../nodes/date";
 
 function toNode(data: AsnType): DecodeNode {
     if (data instanceof Boolean) {
@@ -39,6 +40,13 @@ function toNode(data: AsnType): DecodeNode {
     } else if (data instanceof BitString) {
         // Bits, not bytes; can't do very much here.
         return new BitsNode(getBitsFromBitString(data));
+    } else if (data instanceof UTCTime) {
+        let type = "UTC Time";
+        if (data instanceof GeneralizedTime) {
+            type = "Generalized Time";
+        }
+        console.log(new Uint8Array(data.toBER()));
+        return new DateNode(data.toDate()).setType(type);
     } else if (data instanceof BaseStringBlock) {
         let name = "";
         if (data instanceof TIME) {
@@ -63,10 +71,6 @@ function toNode(data: AsnType): DecodeNode {
             name = "Videotex String";
         } else if (data instanceof IA5String) {
             name = "IA5 String";
-        } else if (data instanceof GeneralizedTime) {
-            name = "Generalized Time";
-        } else if (data instanceof UTCTime) {
-            name = "UTC Time";
         } else if (data instanceof GraphicString) {
             name = "Graphic String";
         } else if (data instanceof VisibleString) {
